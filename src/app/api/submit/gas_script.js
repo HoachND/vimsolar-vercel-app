@@ -75,9 +75,9 @@ function processRequest(e) {
 // ============================================================
 function sendWelcomeEmail(name, email, phone, projectType, language) {
   var isEn = language === "en";
-  
-  var subject = isEn 
-    ? "☀️ Thank you for contacting VimSolar - We will respond within 24h!" 
+
+  var subject = isEn
+    ? "☀️ Thank you for contacting VimSolar - We will respond within 24h!"
     : "☀️ Cảm ơn bạn đã liên hệ VimSolar - Chúng tôi sẽ phản hồi trong 24h!";
 
   var htmlBody = '<!DOCTYPE html>' +
@@ -101,7 +101,7 @@ function sendWelcomeEmail(name, email, phone, projectType, language) {
     '<tr><td style="padding:35px 35px 10px 35px;">' +
     '<h2 style="color:#1e293b; margin:0 0 15px 0; font-size:22px;">' + (isEn ? 'Hello' : 'Xin chào') + ' <span style="color:#D97706;">' + name + '</span> 👋</h2>' +
     '<p style="color:#475569; line-height:1.8; margin:0; font-size:15px;">' +
-    (isEn 
+    (isEn
       ? 'Thank you for your interest in the <strong>rooftop solar solutions</strong> from <strong style="color:#D97706;">VimSolar</strong>.'
       : 'Cảm ơn bạn đã tin tưởng và quan tâm đến giải pháp <strong>điện mặt trời áp mái</strong> của <strong style="color:#D97706;">VimSolar</strong>.') +
     '</p>' +
@@ -125,13 +125,13 @@ function sendWelcomeEmail(name, email, phone, projectType, language) {
     '<div style="background: linear-gradient(135deg, #0C4A6E 0%, #0f172a 100%); border-radius:12px; padding:25px 25px;">' +
     '<h3 style="color:#F59E0B; margin:0 0 12px 0; font-size:16px;">' + (isEn ? '⚡ Next Steps:' : '⚡ Bước tiếp theo:') + '</h3>' +
     '<p style="color:#e2e8f0; margin:0; line-height:1.7; font-size:14px;">' +
-    (isEn 
+    (isEn
       ? '✅ A VimSolar <strong>engineer</strong> will contact you via <strong>Zalo / Phone</strong> within <strong style="color:#F59E0B;">24h</strong>.<br>' +
-        '✅ You will receive a <strong>detailed quote</strong> with a suitable technical plan.<br>' +
-        '✅ <strong>FREE</strong> site survey — no hidden costs.'
+      '✅ You will receive a <strong>detailed quote</strong> with a suitable technical plan.<br>' +
+      '✅ <strong>FREE</strong> site survey — no hidden costs.'
       : '✅ <strong>Kỹ sư</strong> VimSolar sẽ liên hệ trực tiếp qua <strong>Zalo / SĐT</strong> trong vòng <strong style="color:#F59E0B;">24h</strong>.<br>' +
-        '✅ Bạn sẽ nhận được <strong>bản báo giá chi tiết</strong> kèm phương án kỹ thuật phù hợp.<br>' +
-        '✅ Khảo sát hiện trường <strong>MIỄN PHÍ</strong> — không phát sinh chi phí.') +
+      '✅ Bạn sẽ nhận được <strong>bản báo giá chi tiết</strong> kèm phương án kỹ thuật phù hợp.<br>' +
+      '✅ Khảo sát hiện trường <strong>MIỄN PHÍ</strong> — không phát sinh chi phí.') +
     '</p>' +
     '</div>' +
     '</td></tr>' +
@@ -153,15 +153,15 @@ function sendWelcomeEmail(name, email, phone, projectType, language) {
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' +
     (isEn
       ? '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ High-efficiency N-type <strong>TOPCon</strong> panels, Bifacial</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Smart <strong>Hybrid</strong> Inverter with AI integration</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>LiFePO4</strong> safe & durable storage battery for 10+ years</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>25-year</strong> performance warranty, 5-year installation</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>FREE</strong> survey, <strong>transparent</strong> quote</td></tr>'
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Smart <strong>Hybrid</strong> Inverter with AI integration</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>LiFePO4</strong> safe & durable storage battery for 10+ years</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>25-year</strong> performance warranty, 5-year installation</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ <strong>FREE</strong> survey, <strong>transparent</strong> quote</td></tr>'
       : '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Tấm pin N-type <strong>TOPCon</strong> hiệu suất cao, Bifacial</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Biến tần <strong>Hybrid</strong> thông minh, tích hợp AI</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Pin lưu trữ <strong>LiFePO4</strong> an toàn, bền bỉ 10 năm+</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Bảo hành <strong>25 năm</strong> hiệu suất, thi công 5 năm</td></tr>' +
-        '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Khảo sát <strong>MIỄN PHÍ</strong>, báo giá <strong>minh bạch</strong></td></tr>'
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Biến tần <strong>Hybrid</strong> thông minh, tích hợp AI</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Pin lưu trữ <strong>LiFePO4</strong> an toàn, bền bỉ 10 năm+</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Bảo hành <strong>25 năm</strong> hiệu suất, thi công 5 năm</td></tr>' +
+      '<tr><td style="padding:4px 0; color:#475569; font-size:13px;">✔️ Khảo sát <strong>MIỄN PHÍ</strong>, báo giá <strong>minh bạch</strong></td></tr>'
     ) +
     '</table>' +
     '</td></tr></table>' +

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const BOT_TOKEN = '8724327895:AAG4lf55tebnB0RhCqxwoTa_-rG4T8QXutQ';
-const CHAT_ID = '-5179603882';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8724327895:AAG4lf55tebnB0RhCqxwoTa_-rG4T8QXutQ';
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID || '-5179603882';
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 📞 SĐT: ${phone}
 📧 Email: ${email || 'Không có'}
 🏢 Loại công trình: ${projectType || 'Không rõ'}
-📌 Nguồn: Form Báo Giá - vimsolar.vercel.app
+📌 Nguồn: Form Báo Giá - VimSolar Landing Page
 ━━━━━━━━━━━━━━━━━━
 ⚡ Gọi ngay để tư vấn!`;
 
@@ -34,8 +34,7 @@ export async function POST(req: Request) {
     }
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT (Ghi Sheet + Email chào mừng)
-    // ⚠️ SẾP: Thay URL bên dưới bằng URL Web App sau khi triển khai GAS
-    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
+    const GOOGLE_APPS_SCRIPT_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
 
     try {
       await fetch(GOOGLE_APPS_SCRIPT_URL, {
