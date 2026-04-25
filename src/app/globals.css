@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+:root {
+  --solar-amber: #F59E0B;
+  --solar-amber-dark: #D97706;
+  --solar-blue: #0C4A6E;
+  --solar-blue-dark: #082f49;
+  --solar-green: #10B981;
+  --solar-dark: #0f172a;
+  --solar-slate: #1e293b;
+  --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+/* Hide Next.js Dev Indicator */
+nextjs-portal {
+  display: none !important;
+}
+
+/* Solar themed animated gradient background */
+.solar-gradient-bg {
+  background: linear-gradient(135deg, #0C4A6E 0%, #0f172a 40%, #1e293b 100%);
+}
+
+/* Glowing amber effect */
+.glow-amber {
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3), 0 0 60px rgba(245, 158, 11, 0.1);
+}
+
+/* Counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulse ring for floating buttons */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.pulse-ring {
+  position: relative;
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: pulse-ring 1.5s ease-out infinite;
+  z-index: -1;
+}
+
+/* Solar panel shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Sun ray animation */
+@keyframes sunRay {
+  0% { opacity: 0.3; transform: rotate(0deg); }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.3; transform: rotate(360deg); }
+}
+
+.sun-ray {
+  animation: sunRay 20s linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #F59E0B, #D97706);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #F59E0B;
+}
+
+/* Bento card hover effect */
+.bento-hover {
+  transition: var(--transition);
+}
+
+.bento-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.15);
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient text */
+.gradient-text-solar {
+  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
