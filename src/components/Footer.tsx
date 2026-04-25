@@ -2,7 +2,12 @@
 
 import { MapPin, Phone, Mail, Factory } from "lucide-react";
 
+import { useI18n } from "@/context/I18nContext";
+
 export default function Footer() {
+  const { t, language } = useI18n();
+  const isEn = language === "en";
+
   return (
     <footer className="bg-[#0a0f1a] text-gray-400 pt-20 pb-10 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,22 +20,21 @@ export default function Footer() {
               className="h-16 w-auto object-contain"
             />
             <p className="text-sm leading-relaxed">
-              <strong className="text-white">VimSolar by VIMGROUP</strong> — Giải pháp EPC điện năng lượng mặt trời 
-              áp mái trọn gói. Biến mái nhà thành tài sản sinh lời.
+              <strong className="text-white">VimSolar by VIMGROUP</strong> — {isEn ? "Turnkey rooftop solar EPC solution. Turn your roof into a profitable asset." : "Giải pháp EPC điện năng lượng mặt trời áp mái trọn gói. Biến mái nhà thành tài sản sinh lời."}
             </p>
           </div>
 
           {/* Col 2 - Quick Links */}
           <div className="space-y-5">
-            <h4 className="text-lg font-bold text-white">Chuyên Mục</h4>
+            <h4 className="text-lg font-bold text-white">{isEn ? "Quick Links" : "Chuyên Mục"}</h4>
             <ul className="space-y-3 text-sm">
               {[
-                { name: "Trang chủ", href: "#home" },
-                { name: "Giải pháp Solar", href: "#solutions" },
-                { name: "Lợi ích", href: "#benefits" },
-                { name: "Dự án", href: "#projects" },
-                { name: "Quy trình", href: "#process" },
-                { name: "Nhận báo giá", href: "#get-quote" },
+                { name: t("nav_home"), href: "#home" },
+                { name: t("nav_solutions"), href: "#solutions" },
+                { name: t("nav_benefits"), href: "#benefits" },
+                { name: t("nav_projects"), href: "#projects" },
+                { name: t("nav_process"), href: "#process" },
+                { name: t("nav_quote"), href: "#get-quote" },
               ].map((link) => (
                 <li key={link.name}>
                   <a
@@ -46,20 +50,20 @@ export default function Footer() {
 
           {/* Col 3 - Contact */}
           <div className="space-y-5">
-            <h4 className="text-lg font-bold text-white">Liên Hệ</h4>
+            <h4 className="text-lg font-bold text-white">{isEn ? "Contact" : "Liên Hệ"}</h4>
             <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
                 <div>
-                  <strong className="block text-white text-xs mb-1">Văn phòng</strong>
-                  <span>B88, Phố Trúc, KĐT Ecopark, Phụng Công, Hưng Yên</span>
+                  <strong className="block text-white text-xs mb-1">{t("form_office")}</strong>
+                  <span>B88, Phố Trúc, KĐT Ecopark, {isEn ? "Phung Cong, Hung Yen" : "Phụng Công, Hưng Yên"}</span>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <Factory className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
                 <div>
-                  <strong className="block text-white text-xs mb-1">Nhà máy</strong>
-                  <span>KCN Phố Nối A, Văn Lâm, Hưng Yên</span>
+                  <strong className="block text-white text-xs mb-1">{t("form_factory")}</strong>
+                  <span>KCN Phố Nối A, {isEn ? "Van Lam, Hung Yen" : "Văn Lâm, Hưng Yên"}</span>
                 </div>
               </li>
               <li className="flex items-center gap-3">
@@ -101,7 +105,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="block hover:text-amber-400 hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-all duration-300"
           >
-            Sáng tạo bởi VimAI — Thương hiệu công nghệ VIMGROUP
+            {isEn ? "Created by VimAI — A VIMGROUP technology brand" : "Sáng tạo bởi VimAI — Thương hiệu công nghệ VIMGROUP"}
           </a>
         </div>
       </div>

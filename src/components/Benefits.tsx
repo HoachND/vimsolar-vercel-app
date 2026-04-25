@@ -3,14 +3,7 @@ import { useI18n } from "@/context/I18nContext";
 import { motion } from "framer-motion";
 import { Banknote, Leaf, BatteryCharging, TrendingUp, Building2, Sun } from "lucide-react";
 
-const benefits = [
-  { icon: Banknote, titleKey: "ben_1_t", descKey: "ben_1_d", color: "amber", stat: "~400 triệu", statKey: "ben_1_s" },
-  { icon: TrendingUp, titleKey: "ben_2_t", descKey: "ben_2_d", color: "emerald", stat: "1.5-5", statKey: "ben_2_s" },
-  { icon: BatteryCharging, titleKey: "ben_3_t", descKey: "ben_3_d", color: "sky", stat: "24/7", statKey: "ben_3_s" },
-  { icon: Leaf, titleKey: "ben_4_t", descKey: "ben_4_d", color: "green", stat: "7.2 tấn", statKey: "ben_4_s" },
-  { icon: Building2, titleKey: "ben_5_t", descKey: "ben_5_d", color: "violet", stat: "$900+", statKey: "ben_5_s" },
-  { icon: Sun, titleKey: "ben_6_t", descKey: "ben_6_d", color: "orange", stat: "30", statKey: "ben_6_s" },
-];
+
 const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   amber: { bg: "bg-amber-500/10", text: "text-amber-500", border: "border-amber-500/20" },
   emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500", border: "border-emerald-500/20" },
@@ -21,7 +14,17 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
 };
 
 export default function Benefits() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const isEn = language === "en";
+
+  const benefits = [
+    { icon: Banknote, titleKey: "ben_1_t", descKey: "ben_1_d", color: "amber", stat: isEn ? "~400 million" : "~400 triệu", statKey: "ben_1_s" },
+    { icon: TrendingUp, titleKey: "ben_2_t", descKey: "ben_2_d", color: "emerald", stat: "1.5-5", statKey: "ben_2_s" },
+    { icon: BatteryCharging, titleKey: "ben_3_t", descKey: "ben_3_d", color: "sky", stat: "24/7", statKey: "ben_3_s" },
+    { icon: Leaf, titleKey: "ben_4_t", descKey: "ben_4_d", color: "green", stat: isEn ? "7.2 tons" : "7.2 tấn", statKey: "ben_4_s" },
+    { icon: Building2, titleKey: "ben_5_t", descKey: "ben_5_d", color: "violet", stat: "$900+", statKey: "ben_5_s" },
+    { icon: Sun, titleKey: "ben_6_t", descKey: "ben_6_d", color: "orange", stat: "30", statKey: "ben_6_s" },
+  ];
   return (
     <section id="benefits" className="py-24 bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

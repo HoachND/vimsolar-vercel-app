@@ -3,40 +3,47 @@
 import { motion } from "framer-motion";
 import { Search, Ruler, FileText, Wrench, ShieldCheck } from "lucide-react";
 
-const steps = [
-  {
-    num: "01",
-    icon: Search,
-    title: "Khảo Sát & Tư Vấn",
-    desc: "Đội ngũ kỹ sư khảo sát mặt bằng miễn phí. Đánh giá mái nhà, hướng nắng, nhu cầu sử dụng điện. Tư vấn giải pháp tối ưu nhất.",
-  },
-  {
-    num: "02",
-    icon: Ruler,
-    title: "Thiết Kế Kỹ Thuật",
-    desc: "Lên phương án thiết kế chi tiết: bố trí tấm pin, dây chuyền điện, hệ thống giám sát. Mô phỏng sản lượng và tính toán ROI chính xác.",
-  },
-  {
-    num: "03",
-    icon: FileText,
-    title: "Báo Giá & Hợp Đồng",
-    desc: "Báo giá minh bạch, không phát sinh. Ký hợp đồng EPC trọn gói, cam kết tiến độ và chất lượng. Cung ứng thiết bị chính hãng.",
-  },
-  {
-    num: "04",
-    icon: Wrench,
-    title: "Thi Công & Lắp Đặt",
-    desc: "Đội thợ chuyên nghiệp thi công nhanh gọn 3-7 ngày. Tuân thủ quy trình an toàn điện, đấu nối hệ thống với điện lưới EVN.",
-  },
-  {
-    num: "05",
-    icon: ShieldCheck,
-    title: "Nghiệm Thu & Bảo Hành",
-    desc: "Kiểm tra vận hành toàn bộ hệ thống. Bàn giao giám sát online. Bảo hành sản phẩm 12-15 năm, hiệu suất 25-30 năm.",
-  },
-];
+
+
+import { useI18n } from "@/context/I18nContext";
 
 export default function Process() {
+  const { t, language } = useI18n();
+  const isEn = language === "en";
+
+  const steps = [
+    {
+      num: "01",
+      icon: Search,
+      title: isEn ? "Survey & Consultation" : "Khảo Sát & Tư Vấn",
+      desc: isEn ? "Free site survey by our engineers. Evaluate roof, sun direction, and electricity needs. Optimal solution consulting." : "Đội ngũ kỹ sư khảo sát mặt bằng miễn phí. Đánh giá mái nhà, hướng nắng, nhu cầu sử dụng điện. Tư vấn giải pháp tối ưu nhất.",
+    },
+    {
+      num: "02",
+      icon: Ruler,
+      title: isEn ? "Technical Design" : "Thiết Kế Kỹ Thuật",
+      desc: isEn ? "Detailed design planning: panel layout, wiring, monitoring system. Yield simulation and exact ROI calculation." : "Lên phương án thiết kế chi tiết: bố trí tấm pin, dây chuyền điện, hệ thống giám sát. Mô phỏng sản lượng và tính toán ROI chính xác.",
+    },
+    {
+      num: "03",
+      icon: FileText,
+      title: isEn ? "Quote & Contract" : "Báo Giá & Hợp Đồng",
+      desc: isEn ? "Transparent quotation, no hidden fees. Sign turnkey EPC contract, commit to schedule and quality. Supply genuine equipment." : "Báo giá minh bạch, không phát sinh. Ký hợp đồng EPC trọn gói, cam kết tiến độ và chất lượng. Cung ứng thiết bị chính hãng.",
+    },
+    {
+      num: "04",
+      icon: Wrench,
+      title: isEn ? "Construction & Installation" : "Thi Công & Lắp Đặt",
+      desc: isEn ? "Professional team installs quickly in 3-7 days. Comply with electrical safety procedures, connect to EVN grid." : "Đội thợ chuyên nghiệp thi công nhanh gọn 3-7 ngày. Tuân thủ quy trình an toàn điện, đấu nối hệ thống với điện lưới EVN.",
+    },
+    {
+      num: "05",
+      icon: ShieldCheck,
+      title: isEn ? "Acceptance & Warranty" : "Nghiệm Thu & Bảo Hành",
+      desc: isEn ? "Full system operation test. Handover online monitoring. Product warranty 12-15 years, performance 25-30 years." : "Kiểm tra vận hành toàn bộ hệ thống. Bàn giao giám sát online. Bảo hành sản phẩm 12-15 năm, hiệu suất 25-30 năm.",
+    },
+  ];
+
   return (
     <section id="process" className="py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,14 +55,14 @@ export default function Process() {
           className="text-center mb-20"
         >
           <span className="text-amber-600 font-extrabold tracking-[4px] text-xs uppercase">
-            Quy Trình Chuyên Nghiệp
+            {t("proc_badge")}
           </span>
           <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900">
-            5 Bước Sở Hữu{" "}
-            <span className="text-[#0C4A6E]">Điện Mặt Trời</span>
+            {isEn ? "5 Steps to Own " : "5 Bước Sở Hữu "}
+            <span className="text-[#0C4A6E]">{isEn ? "Solar Power" : "Điện Mặt Trời"}</span>
           </h2>
           <p className="text-gray-500 mt-4 max-w-2xl mx-auto text-lg">
-            Quy trình EPC trọn gói — Từ khảo sát đến bàn giao chỉ từ 3-7 ngày. Bạn chỉ cần ngồi yên, VimSolar lo tất cả.
+            {t("proc_desc")}
           </p>
         </motion.div>
 
@@ -112,7 +119,7 @@ export default function Process() {
             href="#get-quote"
             className="inline-block px-10 py-4 bg-gradient-to-r from-[#0C4A6E] to-sky-700 text-white font-extrabold rounded-full hover:shadow-[0_0_30px_rgba(12,74,110,0.4)] transition-all transform hover:scale-105 text-lg"
           >
-            Bắt Đầu Khảo Sát Miễn Phí →
+            {t("proc_cta")}
           </a>
         </motion.div>
       </div>

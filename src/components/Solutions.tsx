@@ -3,50 +3,57 @@
 import { motion } from "framer-motion";
 import { Home, Factory, Building, ShoppingBag } from "lucide-react";
 
-const solutions = [
-  {
-    icon: Home,
-    tag: "HỘ GIA ĐÌNH",
-    title: "Solar Cho Gia Đình",
-    desc: "Hệ Hybrid 5-15kWp, tích hợp pin lưu trữ. Dùng điện cả ban đêm, chống mất điện. Tiền điện 2-5 triệu/tháng về gần 0 đồng.",
-    highlight: "Hoàn vốn 4-5 năm • Tiết kiệm 1.2 tỷ/25 năm",
-    investment: "Từ 80 - 200 triệu",
-    img: "/images/solar-house.jpg",
-    featured: true,
-  },
-  {
-    icon: Factory,
-    tag: "DOANH NGHIỆP",
-    title: "Solar Cho Nhà Xưởng",
-    desc: "Hòa lưới 50-500+ kWp, ROI cực nhanh. Solar phát đúng giờ sản xuất, tỷ lệ tự tiêu thụ 100%. Đáp ứng ESG, tín chỉ carbon.",
-    highlight: "Hoàn vốn 3.5-5 năm • Tiết kiệm 8.3 tỷ/10 năm",
-    investment: "Từ 1 - 10+ tỷ",
-    img: "/images/solar-factory.webp",
-    featured: false,
-  },
-  {
-    icon: Building,
-    tag: "NHÀ TRỌ CHO THUÊ",
-    title: "Solar Cho Nhà Trọ",
-    desc: "ROI nhanh nhất! Chủ nhà mua điện bậc cao 3.460đ/kWh nhưng chỉ thu 3.600đ. Solar cắt phần đắt nhất, tăng lợi nhuận 10 triệu/tháng.",
-    highlight: "Hoàn vốn 1.5-2.5 năm • Lãi thuần 10tr+/tháng",
-    investment: "Từ 150 - 350 triệu",
-    img: "/images/solar-rooftop.jpg",
-    featured: false,
-  },
-  {
-    icon: ShoppingBag,
-    tag: "CỬA HÀNG • KHÁCH SẠN",
-    title: "Solar Cho Kinh Doanh",
-    desc: "Giá điện kinh doanh giờ cao điểm 5.422đ/kWh — gấp 2.7x giá sinh hoạt. Solar cắt đúng phần đắt nhất, ROI siêu nhanh.",
-    highlight: "Hoàn vốn 1.5-2 năm • Tiết kiệm 48tr+/năm",
-    investment: "Từ 60 - 150 triệu",
-    img: "/images/solar-clean.png",
-    featured: false,
-  },
-];
+
+
+import { useI18n } from "@/context/I18nContext";
 
 export default function Solutions() {
+  const { t, language } = useI18n();
+  const isEn = language === "en";
+
+  const solutions = [
+    {
+      icon: Home,
+      tag: isEn ? "RESIDENTIAL" : "HỘ GIA ĐÌNH",
+      title: isEn ? "Solar For Homes" : "Solar Cho Gia Đình",
+      desc: isEn ? "5-15kWp Hybrid system, integrated battery. Use power at night, prevent blackouts. Reduce bills to near zero." : "Hệ Hybrid 5-15kWp, tích hợp pin lưu trữ. Dùng điện cả ban đêm, chống mất điện. Tiền điện 2-5 triệu/tháng về gần 0 đồng.",
+      highlight: isEn ? "ROI 4-5 years • Save 1.2 billion/25 yrs" : "Hoàn vốn 4-5 năm • Tiết kiệm 1.2 tỷ/25 năm",
+      investment: isEn ? "From 80 - 200 million" : "Từ 80 - 200 triệu",
+      img: "/images/solar-house.jpg",
+      featured: true,
+    },
+    {
+      icon: Factory,
+      tag: isEn ? "ENTERPRISE" : "DOANH NGHIỆP",
+      title: isEn ? "Solar For Factories" : "Solar Cho Nhà Xưởng",
+      desc: isEn ? "50-500+ kWp Grid-tied, ultra-fast ROI. Power during production hours, 100% self-consumption. Meet ESG, carbon credits." : "Hòa lưới 50-500+ kWp, ROI cực nhanh. Solar phát đúng giờ sản xuất, tỷ lệ tự tiêu thụ 100%. Đáp ứng ESG, tín chỉ carbon.",
+      highlight: isEn ? "ROI 3.5-5 years • Save 8.3 billion/10 yrs" : "Hoàn vốn 3.5-5 năm • Tiết kiệm 8.3 tỷ/10 năm",
+      investment: isEn ? "From 1 - 10+ billion" : "Từ 1 - 10+ tỷ",
+      img: "/images/solar-factory.webp",
+      featured: false,
+    },
+    {
+      icon: Building,
+      tag: isEn ? "RENTAL PROPERTY" : "NHÀ TRỌ CHO THUÊ",
+      title: isEn ? "Solar For Rentals" : "Solar Cho Nhà Trọ",
+      desc: isEn ? "Fastest ROI! Buy high tier at 3,460đ/kWh but collect 3,600đ. Solar cuts the most expensive part, boosting profit 10m/month." : "ROI nhanh nhất! Chủ nhà mua điện bậc cao 3.460đ/kWh nhưng chỉ thu 3.600đ. Solar cắt phần đắt nhất, tăng lợi nhuận 10 triệu/tháng.",
+      highlight: isEn ? "ROI 1.5-2.5 years • Net profit 10m+/month" : "Hoàn vốn 1.5-2.5 năm • Lãi thuần 10tr+/tháng",
+      investment: isEn ? "From 150 - 350 million" : "Từ 150 - 350 triệu",
+      img: "/images/solar-rooftop.jpg",
+      featured: false,
+    },
+    {
+      icon: ShoppingBag,
+      tag: isEn ? "SHOP • HOTEL" : "CỬA HÀNG • KHÁCH SẠN",
+      title: isEn ? "Solar For Business" : "Solar Cho Kinh Doanh",
+      desc: isEn ? "Business peak price 5,422đ/kWh — 2.7x residential price. Solar cuts exactly the most expensive part, super fast ROI." : "Giá điện kinh doanh giờ cao điểm 5.422đ/kWh — gấp 2.7x giá sinh hoạt. Solar cắt đúng phần đắt nhất, ROI siêu nhanh.",
+      highlight: isEn ? "ROI 1.5-2 years • Save 48m+/year" : "Hoàn vốn 1.5-2 năm • Tiết kiệm 48tr+/năm",
+      investment: isEn ? "From 60 - 150 million" : "Từ 60 - 150 triệu",
+      img: "/images/solar-clean.png",
+      featured: false,
+    },
+  ];
+
   return (
     <section id="solutions" className="py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,13 +66,15 @@ export default function Solutions() {
           className="text-center mb-20"
         >
           <span className="text-amber-600 font-extrabold tracking-[4px] text-xs uppercase">
-            Giải Pháp Tối Ưu
+            {t("sol_badge")}
           </span>
           <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900">
-            Giải Pháp <span className="text-[#0C4A6E]">Điện Mặt Trời</span> VimSolar
+            {isEn ? "VimSolar " : "Giải Pháp "}
+            <span className="text-[#0C4A6E]">{isEn ? "Solar Solutions" : "Điện Mặt Trời"}</span>
+            {isEn ? "" : " VimSolar"}
           </h2>
           <p className="text-gray-500 mt-4 max-w-2xl mx-auto text-lg">
-            Tư vấn - Thiết kế - Thi công trọn gói. Phù hợp mọi nhu cầu từ hộ gia đình đến doanh nghiệp lớn.
+            {t("sol_desc")}
           </p>
         </motion.div>
 
@@ -111,13 +120,13 @@ export default function Solutions() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-white/60 text-sm">
-                    💰 Đầu tư: <strong className="text-white">{s.investment}</strong>
+                    💰 {t("sol_invest")} <strong className="text-white">{s.investment}</strong>
                   </span>
                   <a
                     href="#get-quote"
                     className="text-amber-400 font-bold text-sm hover:text-amber-300 transition-colors"
                   >
-                    Tư vấn ngay →
+                    {t("sol_consult")}
                   </a>
                 </div>
               </div>
