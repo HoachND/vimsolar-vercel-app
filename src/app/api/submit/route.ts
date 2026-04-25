@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT (Ghi Sheet + Email chào mừng)
     // ⚠️ SẾP: Thay URL bên dưới bằng URL Web App sau khi triển khai GAS
-    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/REPLACE_WITH_YOUR_GAS_URL/exec";
+    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
 
     try {
       await fetch(GOOGLE_APPS_SCRIPT_URL, {
