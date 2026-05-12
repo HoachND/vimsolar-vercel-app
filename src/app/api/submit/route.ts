@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT DỰ ÁN (VimSolar Sheet + Email chào mừng)
-    const PROJECT_GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbzXxzNUiacfdbjiCUtsK2PlLXe0UM4cxsUWxVfmcJTI89xQuCCIj-HBDlr55CR0Esit/exec";
+    const PROJECT_GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT TỔNG (0.0.TOTAL DATA CUSTOMER_VIMGROUP_2026)
     // Theo yêu cầu của Sếp Hoạch: Lưu đồng thời vào 2 file
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ 
             ...data, 
-            source: "ai.vimgroup.vn (contact-form)", // Nguồn theo format trong screenshot
+            source: "solar.vimgroup.vn (contact-form)",
             targetSheetId: GLOBAL_SHEET_ID 
           }),
         })
