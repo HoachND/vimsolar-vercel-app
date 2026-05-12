@@ -29,7 +29,7 @@ export default function Navbar() {
     { name: t("nav_process"), href: "#process" },
     { name: language === "vi" ? "Tính ROI" : "ROI Calc", href: "/tu-van" },
     { name: "Blog", href: "/blog" },
-    { name: language === "vi" ? "Liên Hệ" : "Contact", href: "/#contact" },
+    { name: language === "vi" ? "Liên Hệ" : "Contact", href: "/#get-quote" },
   ];
 
   return (

@@ -34,11 +34,11 @@ export async function POST(req: Request) {
     }
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT DỰ ÁN (VimSolar Sheet + Email chào mừng)
-    const PROJECT_GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
+    const PROJECT_GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbzXxzNUiacfdbjiCUtsK2PlLXe0UM4cxsUWxVfmcJTI89xQuCCIj-HBDlr55CR0Esit/exec";
 
     // GỬI ĐẾN GOOGLE APPS SCRIPT TỔNG (0.0.TOTAL DATA CUSTOMER_VIMGROUP_2026)
     // Theo yêu cầu của Sếp Hoạch: Lưu đồng thời vào 2 file
-    const GLOBAL_GAS_URL = "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec"; // Dùng chung GAS handler nhưng truyền ID khác
+    const GLOBAL_GAS_URL = "https://script.google.com/macros/s/AKfycbzVK3sPVnbDfcRxk8n_5vi-gRU2X_1GTXVHuU8kcrk6Kfk3wkpqKRDJACtb3msUFRm6/exec"; // TOTAL DATA VIMGROUP 2026
     const GLOBAL_SHEET_ID = "1LAtBjiRbwTxt7qu9XSYwzbVMNYBvC6guq-Zv_Yp3Cf0";
 
     try {
