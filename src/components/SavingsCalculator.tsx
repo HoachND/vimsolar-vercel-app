@@ -141,7 +141,7 @@ export default function SavingsCalculator() {
 
                 {/* CTA */}
                 <a
-                  href="#get-quote"
+                  href="/tu-van"
                   className={`block text-center mt-6 py-3 rounded-full ${colors.badge} text-white font-bold hover:opacity-90 transition-opacity`}
                 >
                   {isEn ? "Calculate for me →" : "Tính toán cho tôi →"}

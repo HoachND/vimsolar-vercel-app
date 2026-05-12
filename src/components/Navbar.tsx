@@ -1,14 +1,17 @@
 "use client";
 
 import { useI18n } from "@/context/I18nContext";
+import { usePathname } from "next/navigation";
 import { Menu, X, Phone, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Navbar() {
   const { t, language, setLanguage } = useI18n();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isBlog = pathname.startsWith("/blog");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -24,24 +27,26 @@ export default function Navbar() {
     { name: t("nav_benefits"), href: "#benefits" },
     { name: t("nav_projects"), href: "#projects" },
     { name: t("nav_process"), href: "#process" },
-    { name: t("nav_quote"), href: "#get-quote" },
+    { name: language === "vi" ? "Tính ROI" : "ROI Calc", href: "/tu-van" },
+    { name: "Blog", href: "/blog" },
+    { name: language === "vi" ? "Liên Hệ" : "Contact", href: "/#contact" },
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 ${
-      scrolled ? "bg-[#0C4A6E]/95 backdrop-blur-md shadow-lg shadow-amber-500/5 py-1" : "bg-transparent py-3"
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      scrolled || isBlog ? "bg-[#082f49]/95 backdrop-blur-md shadow-xl py-1" : "bg-transparent py-2"
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex-shrink-0">
-            <a href="#home" className="hover:opacity-80 transition-opacity">
+            <a href="/" className="hover:opacity-80 transition-opacity">
               <Image
-                src="/images/logo-vimsolar.png"
+                src="/images/logo-vimsolar-nobg.png"
                 alt="VimSolar"
                 width={1200}
                 height={400}
-                className={`w-auto object-contain transition-all duration-500 ${
-                  scrolled ? "h-20 md:h-24" : "h-24 md:h-32 lg:h-40"
+                className={`w-auto object-contain transition-all duration-300 ${
+                  scrolled ? "h-12 md:h-14" : "h-16 md:h-20"
                 }`}
                 priority
               />

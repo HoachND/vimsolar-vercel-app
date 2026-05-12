@@ -12,7 +12,7 @@ const translations: Record<string, Record<string, string>> = {
   nav_call: { vi: "Gọi ngay", en: "Call Now" },
 
   // Hero
-  hero_badge: { vi: "⚡ Giải pháp năng lượng xanh 2026", en: "⚡ Green Energy Solutions 2026" },
+  hero_badge: { vi: "⚡ Giải pháp năng lượng xanh Toàn Cầu", en: "⚡ Global Green Energy Solutions" },
   hero_title_1: { vi: "Biến Mái Nhà", en: "Turn Your Roof" },
   hero_title_2: { vi: "Thành", en: "Into An" },
   hero_title_3: { vi: "Tài Sản", en: "Asset" },
