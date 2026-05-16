@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     if (action === "register") {
       const { name, phone, email } = body;
       const phoneClean = phone.replace(/\D/g, "");
+      
       if (phoneClean.length !== 10) return NextResponse.json({ error: "Số điện thoại phải đúng 10 số!" }, { status: 400 });
       if (!email || !email.includes("@")) return NextResponse.json({ error: "Email không hợp lệ! Phải có ký tự @" }, { status: 400 });
 
@@ -31,56 +32,48 @@ export async function POST(req: NextRequest) {
         `SELECT access_code, expires_at FROM vimsolar_roi_access WHERE phone = $1 AND expires_at > CURRENT_TIMESTAMP`,
         [phoneClean]
       );
+      
+      let code = "";
       if (checkRes.rowCount && checkRes.rowCount > 0) {
-        return NextResponse.json({
-          success: true,
-          accessCode: checkRes.rows[0].access_code,
-          message: "Bạn đã đăng ký trước đó. Đây là mã truy cập của bạn.",
-        });
+        code = checkRes.rows[0].access_code;
+      } else {
+        code = generateCode();
+        const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        const newId = Date.now().toString();
+
+        await pool.query(
+          `INSERT INTO vimsolar_roi_access (id, name, phone, email, access_code, expires_at) VALUES ($1, $2, $3, $4, $5, $6)`,
+          [newId, name, phoneClean, email, code, expires]
+        );
       }
 
-      const code = generateCode();
-      const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-      const newId = Date.now().toString();
-
-      await pool.query(
-        `INSERT INTO vimsolar_roi_access (id, name, phone, email, access_code, expires_at) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [newId, name, phoneClean, email, code, expires]
-      );
-
-      // Send Telegram notification
-      const tgMessage = `🔐 ĐĂNG KÝ ROI TOOL - VIMSOLAR!
-━━━━━━━━━━━━━━━━━━
-👤 Tên: ${name}
-📞 SĐT: ${phoneClean}
-📧 Email: ${email}
-🔑 Mã truy cập: ${code}
-📌 Nguồn: ROI Tool Registration
-━━━━━━━━━━━━━━━━━━
-⚡ Khách hàng quan tâm Solar!`;
-
+      // 1. Send Welcome Email (Wait for this to ensure it sends)
       try {
-        await Promise.all([
-          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: tgMessage }),
-          }),
-          fetch(PROJECT_GAS_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)" }),
-          }),
-          fetch(GLOBAL_GAS_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
-          }),
-          sendWelcomeEmail(email, name, code)
-        ]);
-      } catch (syncError) {
-        console.error("Sync error:", syncError);
+        await sendWelcomeEmail(email, name, code);
+      } catch (mailErr) {
+        console.error("Mail Error:", mailErr);
       }
+
+      // 2. Sync background (Telegram & GAS)
+      const tgMessage = `🔓 ĐĂNG KÝ ROI TOOL - VIMSOLAR!\n\n👤 Tên: ${name}\n📞 SĐT: ${phoneClean}\n📧 Email: ${email}\n🔑 Mã truy cập: ${code}\n📌 Nguồn: ROI Tool Registration\n\n⚡ Khách hàng quan tâm Solar!`;
+      
+      Promise.all([
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: tgMessage }),
+        }),
+        fetch(PROJECT_GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)" }),
+        }),
+        fetch(GLOBAL_GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
+        })
+      ]).catch(e => console.error("Sync Background Error:", e));
 
       return NextResponse.json({
         success: true,

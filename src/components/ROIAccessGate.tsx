@@ -86,7 +86,11 @@ export default function ROIAccessGate() {
       }
       setAccessCode(data.accessCode);
       setSuccessMsg(data.message);
-      saveAccess(regName);
+      
+      // Don't call saveAccess immediately, wait so user can see the code
+      setTimeout(() => {
+        saveAccess(regName);
+      }, 8000); // Wait 8 seconds
     } catch {
       setError("Lỗi kết nối. Vui lòng thử lại!");
     }
@@ -224,7 +228,14 @@ export default function ROIAccessGate() {
                 <p className="text-xs text-slate-500 mt-2">Hãy lưu lại mã này để truy cập lần sau</p>
               </div>
 
-              <p className="text-emerald-400 text-sm font-bold">✅ Đang chuyển đến ROI Tool...</p>
+              <p className="text-emerald-400 text-sm font-bold mb-6">✅ Đang chuyển đến ROI Tool...</p>
+
+              <button
+                onClick={() => saveAccess(regName)}
+                className="w-full py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all"
+              >
+                Bắt đầu tính toán ngay
+              </button>
             </motion.div>
           ) : (
             <motion.div
