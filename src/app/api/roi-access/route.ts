@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool, initDb } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/mail";
 
 // Generate a 6-char code
 function generateCode(): string {
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
           }),
+          sendWelcomeEmail(email, name, code)
         ]);
       } catch (syncError) {
         console.error("Sync error:", syncError);

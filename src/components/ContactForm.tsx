@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2, AlertCircle, Facebook, Globe } from "lucide-react";
 import { useI18n } from "@/context/I18nContext";
 
 export default function ContactForm() {
@@ -138,6 +138,28 @@ export default function ContactForm() {
                   <strong className="block text-white text-lg">Email</strong>
                   <a href="mailto:solar.vimgroup@gmail.com" className="text-gray-400 hover:text-amber-400 transition-colors">
                     solar.vimgroup@gmail.com
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <Facebook className="text-blue-400" size={22} />
+                </div>
+                <div>
+                  <strong className="block text-white text-lg">Facebook</strong>
+                  <a href="https://www.facebook.com/vimsolar" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-amber-400 transition-colors">
+                    fb.com/vimsolar
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-slate-500/20 flex items-center justify-center flex-shrink-0">
+                  <Globe className="text-slate-400" size={22} />
+                </div>
+                <div>
+                  <strong className="block text-white text-lg">Website</strong>
+                  <a href="https://www.vimgroup.vn/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-amber-400 transition-colors">
+                    vimgroup.vn
                   </a>
                 </div>
               </li>

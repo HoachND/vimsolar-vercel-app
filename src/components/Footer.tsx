@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Phone, Mail, Factory } from "lucide-react";
+import { MapPin, Phone, Mail, Factory, Facebook, Globe } from "lucide-react";
 
 import { useI18n } from "@/context/I18nContext";
 
@@ -76,6 +76,18 @@ export default function Footer() {
                 <Mail className="text-amber-500 flex-shrink-0" size={18} />
                 <a href="mailto:solar.vimgroup@gmail.com" className="hover:text-amber-400 transition-colors">
                   solar.vimgroup@gmail.com
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Facebook className="text-amber-500 flex-shrink-0" size={18} />
+                <a href="https://www.facebook.com/vimsolar" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
+                  fb.com/vimsolar
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Globe className="text-amber-500 flex-shrink-0" size={18} />
+                <a href="https://www.vimgroup.vn/" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
+                  vimgroup.vn
                 </a>
               </li>
             </ul>
