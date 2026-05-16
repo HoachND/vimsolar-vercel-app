@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-
-const DATA_FILE = path.join(process.cwd(), "data", "blog-posts.json");
+const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
+const DATA_FILE = path.join(DATA_DIR, "blog-posts.json");
 
 export interface BlogPost {
   id: string;

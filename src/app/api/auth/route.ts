@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const USERS_FILE = path.join(process.cwd(), "data", "users.json");
+const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
+const USERS_FILE = path.join(DATA_DIR, "users.json");
 
 interface User {
   id: string;

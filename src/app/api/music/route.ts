@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const MUSIC_FILE = path.join(process.cwd(), "data", "music.json");
+const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
+const MUSIC_FILE = path.join(DATA_DIR, "music.json");
 
 function ensureFile() {
   const dir = path.dirname(MUSIC_FILE);

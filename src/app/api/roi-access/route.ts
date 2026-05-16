@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const ACCESS_FILE = path.join(process.cwd(), "data", "roi-access.json");
-const USERS_FILE = path.join(process.cwd(), "data", "users.json");
+const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
+const ACCESS_FILE = path.join(DATA_DIR, "roi-access.json");
+const USERS_FILE = path.join(DATA_DIR, "users.json");
 
 interface ROIAccess {
   id: string;
@@ -37,7 +39,7 @@ function generateCode(): string {
 }
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8724327895:AAG4lf55tebnB0RhCqxwoTa_-rG4T8QXutQ";
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "-5179603882";
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "-1003947452569";
 const PROJECT_GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyEdnk__IV7PAx4X8LoCB6lfkil0u1q7Zsa9RborC4zSBeKAKwLyNiilFV4A_GPNAg/exec";
 const GLOBAL_GAS_URL = "https://script.google.com/macros/s/AKfycbzVK3sPVnbDfcRxk8n_5vi-gRU2X_1GTXVHuU8kcrk6Kfk3wkpqKRDJACtb3msUFRm6/exec";
 const GLOBAL_SHEET_ID = "1LAtBjiRbwTxt7qu9XSYwzbVMNYBvC6guq-Zv_Yp3Cf0";
