@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2 } from "lucide-react";
+import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { useI18n } from "@/context/I18nContext";
 
 export default function ContactForm() {
@@ -16,9 +16,35 @@ export default function ContactForm() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<{ phone?: string; email?: string }>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: { phone?: string; email?: string } = {};
+
+    // Phone: must be exactly 10 digits
+    const phoneClean = formData.phone.replace(/\D/g, "");
+    if (phoneClean.length !== 10) {
+      newErrors.phone = isEn
+        ? "Phone number must be exactly 10 digits!"
+        : "Số điện thoại phải đúng 10 số!";
+    }
+
+    // Email: must contain @
+    if (!formData.email || !formData.email.includes("@")) {
+      newErrors.email = isEn
+        ? "Email must contain @ character!"
+        : "Email phải có ký tự @!";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setLoading(true);
     try {
       const res = await fetch("/api/submit", {
@@ -29,6 +55,7 @@ export default function ContactForm() {
       if (res.ok) {
         setSuccess(true);
         setFormData({ name: "", phone: "", email: "", projectType: "Hộ gia đình" });
+        setErrors({});
         // Dynamic confetti import
         const confetti = (await import("canvas-confetti")).default;
         confetti({
@@ -159,28 +186,54 @@ export default function ContactForm() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {t("form_phone")}
+                    {t("form_phone")} <span className="text-amber-400">*</span>
                   </label>
                   <input
                     required
                     type="tel"
                     placeholder="09xxxxxxxx"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all"
+                    className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none transition-all ${
+                      errors.phone
+                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/50"
+                        : "border-white/10 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50"
+                    }`}
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, phone: e.target.value });
+                      if (errors.phone) setErrors({ ...errors, phone: undefined });
+                    }}
+                    maxLength={11}
                   />
+                  {errors.phone && (
+                    <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> {errors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {t("form_email")}
+                    {t("form_email")} <span className="text-amber-400">*</span>
                   </label>
                   <input
+                    required
                     type="email"
                     placeholder="example@gmail.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all"
+                    className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none transition-all ${
+                      errors.email
+                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/50"
+                        : "border-white/10 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50"
+                    }`}
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      if (errors.email) setErrors({ ...errors, email: undefined });
+                    }}
                   />
+                  {errors.email && (
+                    <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> {errors.email}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">

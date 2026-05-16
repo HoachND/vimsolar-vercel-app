@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot";
+import BackgroundMusic from "@/components/BackgroundMusic";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://solar.vimgroup.vn"),
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="bg-white text-slate-900 antialiased overflow-x-hidden">
         {children}
         <Chatbot />
+        <BackgroundMusic />
       </body>
     </html>
   );

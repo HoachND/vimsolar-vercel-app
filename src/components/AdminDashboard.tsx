@@ -1,36 +1,124 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, FileText, Plus, LogOut, Moon, Sun, Save, Trash2, ChevronLeft, Globe, Search, Eye, EyeOff, Code, Terminal, Copy, Key } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, LogOut, Moon, Sun, Save, Trash2, ChevronLeft, Globe, Search, Eye, EyeOff, Code, Terminal, Key, Users, UserPlus, Music, Shield, AlertCircle, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import { BlogPost } from "@/app/api/blog/route";
 
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "admin" | "staff" | "member";
+  createdAt: string;
+}
+
 export default function AdminDashboard() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [password, setPassword] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  
   const [isDark, setIsDark] = useState(true);
+  const [activeTab, setActiveTab] = useState<"blog" | "staff" | "music" | "profile">("blog");
+  
+  // Blog State
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  // Simple auth for demo - in production use NextAuth
-  const handleLogin = () => {
-    if (password === "vimsolar99") setIsLoggedIn(true);
-    else alert("Sai mật khẩu Sếp ơi!");
+  // Staff State
+  const [staffList, setStaffList] = useState<User[]>([]);
+  const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
+  const [newStaff, setNewStaff] = useState({ username: "", password: "", name: "", email: "", phone: "", role: "staff" });
+
+  // Music State
+  const [playlist, setPlaylist] = useState<{ title: string; url: string }[]>([]);
+
+  // Profile/Password State
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [passMsg, setPassMsg] = useState({ text: "", type: "" });
+
+  useEffect(() => {
+    // Attempt to load session from local storage (simple demo)
+    const saved = localStorage.getItem("vimsolar-admin-session");
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        setUser(u);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      if (activeTab === "blog") fetchPosts();
+      if (activeTab === "staff" && user.role === "admin") fetchStaff();
+      if (activeTab === "music") fetchMusic();
+    }
+  }, [user, activeTab]);
+
+  // Auth Functions
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setLoginError("");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", username: loginUser, password: loginPass })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoginError(data.error);
+        return;
+      }
+      setUser(data.user);
+      localStorage.setItem("vimsolar-admin-session", JSON.stringify(data.user));
+    } catch {
+      setLoginError("Lỗi kết nối server!");
+    }
   };
 
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("vimsolar-admin-session");
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassMsg({ text: "", type: "" });
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "change-password", userId: user?.id, currentPassword: currentPass, newPassword: newPass })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPassMsg({ text: data.error, type: "error" });
+        return;
+      }
+      setPassMsg({ text: "Đổi mật khẩu thành công!", type: "success" });
+      setCurrentPass("");
+      setNewPass("");
+    } catch {
+      setPassMsg({ text: "Lỗi kết nối!", type: "error" });
+    }
+  };
+
+  // Blog Functions
   const fetchPosts = async () => {
     const res = await fetch("/api/blog?admin=true");
     const data = await res.json();
     setPosts(data);
   };
 
-  useEffect(() => {
-    if (isLoggedIn) fetchPosts();
-  }, [isLoggedIn]);
-
-  const handleSave = async (e: React.FormEvent) => {
+  const savePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPost) return;
 
@@ -54,36 +142,130 @@ export default function AdminDashboard() {
     fetchPosts();
   };
 
-  if (!isLoggedIn) {
+  // Staff Functions
+  const fetchStaff = async () => {
+    if (user?.role !== "admin") return;
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "list-users", adminId: user.id })
+      });
+      const data = await res.json();
+      if (res.ok) setStaffList(data);
+    } catch {}
+  };
+
+  const addStaff = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add-staff", adminId: user?.id, ...newStaff })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsStaffModalOpen(false);
+        setNewStaff({ username: "", password: "", name: "", email: "", phone: "", role: "staff" });
+        fetchStaff();
+        alert("Đã thêm thành viên!");
+      } else {
+        alert(data.error);
+      }
+    } catch {
+      alert("Lỗi kết nối!");
+    }
+  };
+
+  const deleteStaff = async (id: string) => {
+    if (!confirm("Bạn chắc chắn muốn xóa thành viên này?")) return;
+    await fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete-staff", adminId: user?.id, userId: id })
+    });
+    fetchStaff();
+  };
+
+  // Music Functions
+  const fetchMusic = async () => {
+    const res = await fetch("/api/music");
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      setPlaylist(data);
+    } else {
+      setPlaylist([{ title: "", url: "" }]);
+    }
+  };
+
+  const saveMusic = async () => {
+    const validPlaylist = playlist.filter(p => p.url.trim() !== "");
+    try {
+      const res = await fetch("/api/music", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playlist: validPlaylist })
+      });
+      if (res.ok) alert("Đã lưu playlist nhạc!");
+    } catch {
+      alert("Lỗi lưu nhạc!");
+    }
+  };
+
+
+  // Login Screen
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl text-center">
-          <div className="relative w-[200px] h-[60px] mx-auto mb-6">
-            <Image src="/images/logo-vimsolar-nobg.png" alt="Logo" fill className="object-contain" />
-          </div>
-          <h1 className="text-white font-black text-2xl mb-2">VimGroup Admin</h1>
-          <p className="text-slate-400 mb-8 text-sm">Đăng nhập để quản lý nội dung</p>
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Nhập mật khẩu admin"
-                className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors pr-12"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-2xl text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl"></div>
+          
+          <div className="relative z-10">
+            <div className="relative w-[200px] h-[60px] mx-auto mb-6">
+              <Image src="/images/logo-vimsolar-nobg.png" alt="Logo" fill className="object-contain" />
             </div>
-            <button onClick={handleLogin} className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/20">
-              Đăng nhập
-            </button>
+            <h1 className="text-white font-black text-2xl mb-2">Workspace Admin</h1>
+            <p className="text-slate-400 mb-8 text-sm">Hệ thống quản trị nội bộ VimSolar</p>
+            
+            <form onSubmit={handleLogin} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Tên đăng nhập hoặc Email"
+                className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                value={loginUser}
+                onChange={(e) => setLoginUser(e.target.value)}
+                required
+              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mật khẩu"
+                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors pr-12"
+                  value={loginPass}
+                  onChange={(e) => setLoginPass(e.target.value)}
+                  required
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+
+              {loginError && (
+                <div className="flex items-center justify-center gap-2 text-red-400 text-sm bg-red-500/10 p-2 rounded-lg">
+                  <AlertCircle size={14} /> {loginError}
+                </div>
+              )}
+
+              <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 font-bold py-3 rounded-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all">
+                Đăng nhập
+              </button>
+            </form>
           </div>
         </motion.div>
       </div>
@@ -92,121 +274,258 @@ export default function AdminDashboard() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-slate-950 text-white" : "bg-gray-50 text-slate-900"}`}>
-      {/* Sidebar / Nav */}
+      {/* Navbar */}
       <nav className={`fixed w-full z-40 border-b ${isDark ? "bg-slate-900/80 border-white/5" : "bg-white/80 border-gray-200"} backdrop-blur-md`}>
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="relative w-[120px] h-[40px]">
               <Image src="/images/logo-vimsolar-nobg.png" alt="Logo" fill className={`object-contain ${!isDark ? "invert" : ""}`} />
             </div>
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Dashboard</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded text-xs font-bold capitalize">{user.role}</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <span className="text-sm font-medium hidden sm:inline-block">Chào, {user.name}</span>
             <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-full hover:bg-white/5 transition-colors">
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             <a href="/" className="text-xs font-bold px-4 py-2 rounded-full border border-current hover:bg-current hover:text-white transition-all flex items-center gap-2">
-              <ChevronLeft size={14} /> Trang chủ
+              <ChevronLeft size={14} /> Ra website
             </a>
-            <button onClick={() => setIsLoggedIn(false)} className="text-red-500 p-2"><LogOut size={20} /></button>
+            <button onClick={handleLogout} className="text-red-500 p-2 hover:bg-red-500/10 rounded-full transition-colors"><LogOut size={20} /></button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 pt-24 pb-12">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-black">Quản Lý Bài Viết</h1>
-            <p className={`${isDark ? "text-slate-400" : "text-gray-500"} text-sm mt-1`}>Cập nhật tin tức & kiến thức AI Automation hàng ngày</p>
-          </div>
-          <button 
-            onClick={() => {
-              setEditingPost({ 
-                id: "", slug: "", titleVi: "", titleEn: "", excerptVi: "", excerptEn: "", 
-                contentVi: "", contentEn: "", category: "Solar", 
-                seoTitle: "", seoDescription: "", seoImage: "", 
-                tags: [], author: "VimSolar", published: true, createdAt: "", updatedAt: "" 
-              });
-              setIsEditorOpen(true);
-            }}
-            className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-amber-600/20"
-          >
-            <Plus size={20} /> Viết Bài Mới
+      <main className="max-w-7xl mx-auto px-4 pt-24 pb-12 flex flex-col md:flex-row gap-8">
+        
+        {/* Sidebar Menu */}
+        <aside className="w-full md:w-64 flex-shrink-0 space-y-2">
+          <button onClick={() => setActiveTab("blog")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "blog" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+            <LayoutDashboard size={20} /> Quản lý Blog
           </button>
-        </div>
+          {user.role === "admin" && (
+            <button onClick={() => setActiveTab("staff")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "staff" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+              <Users size={20} /> Quản lý Nhân sự
+            </button>
+          )}
+          <button onClick={() => setActiveTab("music")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "music" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+            <Music size={20} /> Nhạc Background
+          </button>
+          <button onClick={() => setActiveTab("profile")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "profile" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+            <Shield size={20} /> Đổi mật khẩu
+          </button>
+        </aside>
 
-        {/* Post Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <div key={post.id} className={`p-6 rounded-3xl border transition-all ${isDark ? "bg-slate-900 border-white/5 hover:border-amber-500/30" : "bg-white border-gray-100 hover:shadow-xl"}`}>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 px-2 py-1 rounded">
-                  {post.category}
-                </span>
-                <div className="flex gap-2">
-                  <button onClick={() => { setEditingPost(post); setIsEditorOpen(true); }} className="text-blue-400 hover:text-blue-300">Sửa</button>
-                  <button onClick={() => deletePost(post.id)} className="text-red-400 hover:text-red-300"><Trash2 size={16} /></button>
+        {/* Content Area */}
+        <div className="flex-1 min-w-0">
+          
+          {/* TAB: BLOG */}
+          {activeTab === "blog" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h1 className="text-3xl font-black">Bài Viết</h1>
+                  <p className="text-slate-400 text-sm mt-1">Quản lý nội dung và SEO cho website</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setEditingPost({ 
+                      id: "", slug: "", titleVi: "", titleEn: "", excerptVi: "", excerptEn: "", 
+                      contentVi: "", contentEn: "", category: "Solar", 
+                      seoTitle: "", seoDescription: "", seoImage: "", 
+                      tags: [], author: user.name, published: true, createdAt: "", updatedAt: "" 
+                    });
+                    setIsEditorOpen(true);
+                  }}
+                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-amber-600/20"
+                >
+                  <Plus size={20} /> Viết Bài Mới
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {posts.map((post) => (
+                  <div key={post.id} className={`p-6 rounded-3xl border transition-all ${isDark ? "bg-slate-900 border-white/5 hover:border-amber-500/30" : "bg-white border-gray-100 hover:shadow-xl"}`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 px-2 py-1 rounded">
+                        {post.category}
+                      </span>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditingPost(post); setIsEditorOpen(true); }} className="text-blue-400 hover:text-blue-300">Sửa</button>
+                        <button onClick={() => deletePost(post.id)} className="text-red-400 hover:text-red-300"><Trash2 size={16} /></button>
+                      </div>
+                    </div>
+                    <h3 className="font-bold text-lg mb-2 line-clamp-2">{post.titleVi}</h3>
+                    <p className={`text-xs mb-4 line-clamp-2 ${isDark ? "text-slate-400" : "text-gray-500"}`}>{post.excerptVi}</p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</span>
+                      <span className={post.published ? "text-emerald-500" : "text-amber-500"}>{post.published ? "● Đã đăng" : "○ Bản nháp"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* API Docs */}
+              {user.role === "admin" && (
+                <div className={`mt-16 p-8 rounded-3xl border ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-100 shadow-xl"}`}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl"><Terminal size={24} /></div>
+                    <div>
+                      <h2 className="text-xl font-black">Blog API - Automation</h2>
+                      <p className="text-sm text-slate-500">Dùng cho Make.com / n8n</p>
+                    </div>
+                  </div>
+                  <div className={`p-6 rounded-2xl font-mono text-sm overflow-x-auto ${isDark ? "bg-slate-950 text-emerald-400" : "bg-gray-900 text-emerald-400"}`}>
+                    POST /api/blog<br/>
+                    Content-Type: application/json<br/>
+                    {`{ "titleVi": "...", "contentVi": "...", "seoTitle": "..." }`}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* TAB: STAFF */}
+          {activeTab === "staff" && user.role === "admin" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h1 className="text-3xl font-black">Nhân Sự</h1>
+                  <p className="text-slate-400 text-sm mt-1">Quản lý phân quyền tài khoản</p>
+                </div>
+                <button 
+                  onClick={() => setIsStaffModalOpen(true)}
+                  className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-sky-600/20"
+                >
+                  <UserPlus size={20} /> Thêm Staff
+                </button>
+              </div>
+
+              <div className="bg-slate-900 border border-white/10 rounded-2xl overflow-hidden">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="px-6 py-4">Nhân viên</th>
+                      <th className="px-6 py-4">Tài khoản</th>
+                      <th className="px-6 py-4">Vai trò</th>
+                      <th className="px-6 py-4 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {staffList.map((s) => (
+                      <tr key={s.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-bold">{s.name}</div>
+                          <div className="text-slate-500 text-xs">{s.email || "No email"}</div>
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-300">{s.username}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${s.role === "admin" ? "bg-amber-500/10 text-amber-500" : "bg-sky-500/10 text-sky-500"}`}>
+                            {s.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {s.role !== "admin" && (
+                            <button onClick={() => deleteStaff(s.id)} className="text-red-400 hover:text-red-300 p-2">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB: MUSIC */}
+          {activeTab === "music" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl">
+              <h1 className="text-3xl font-black mb-2">Nhạc Website</h1>
+              <p className="text-slate-400 text-sm mb-8">Quản lý danh sách phát nhạc nền (Hỗ trợ link YouTube hoặc MP3)</p>
+              
+              <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-4">
+                {playlist.map((song, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="flex-1 space-y-2">
+                      <input 
+                        type="text" 
+                        placeholder="Tên bài hát" 
+                        value={song.title} 
+                        onChange={(e) => {
+                          const newPl = [...playlist];
+                          newPl[i].title = e.target.value;
+                          setPlaylist(newPl);
+                        }}
+                        className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 focus:border-amber-500 outline-none"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Link YouTube (vd: https://youtube.com/watch?v=...)" 
+                        value={song.url} 
+                        onChange={(e) => {
+                          const newPl = [...playlist];
+                          newPl[i].url = e.target.value;
+                          setPlaylist(newPl);
+                        }}
+                        className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 focus:border-amber-500 outline-none text-xs"
+                      />
+                    </div>
+                    <button onClick={() => setPlaylist(playlist.filter((_, idx) => idx !== i))} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+
+                <div className="flex gap-4 pt-4 border-t border-white/5">
+                  <button onClick={() => setPlaylist([...playlist, { title: "", url: "" }])} className="px-6 py-2 rounded-xl bg-white/5 hover:bg-white/10 font-bold flex items-center gap-2 text-sm">
+                    <Plus size={16} /> Thêm bài
+                  </button>
+                  <button onClick={saveMusic} className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold flex items-center gap-2 text-sm shadow-lg shadow-amber-600/20">
+                    <Save size={16} /> Lưu Playlist
+                  </button>
                 </div>
               </div>
-              <h3 className="font-bold text-lg mb-2 line-clamp-2">{post.titleVi}</h3>
-              <p className={`text-xs mb-4 line-clamp-2 ${isDark ? "text-slate-400" : "text-gray-500"}`}>{post.excerptVi}</p>
-              <div className="flex items-center justify-between text-[10px] text-slate-500">
-                <span>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</span>
-                <span className={post.published ? "text-emerald-500" : "text-amber-500"}>{post.published ? "● Đã đăng" : "○ Bản nháp"}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            </motion.div>
+          )}
 
-        {/* API Auto Post Section - Same as phongcreator.com */}
-        <div className={`mt-16 p-8 rounded-3xl border ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-100 shadow-xl"}`}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl">
-              <Terminal size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-black">Blog API - Đăng Bài Tự Động</h2>
-              <p className="text-sm text-slate-500">Gọi API để đăng bài từ Make.com, n8n, hoặc bất kỳ tool nào của Sếp</p>
-            </div>
-          </div>
+          {/* TAB: PROFILE/PASSWORD */}
+          {activeTab === "profile" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md">
+              <h1 className="text-3xl font-black mb-2">Đổi Mật Khẩu</h1>
+              <p className="text-slate-400 text-sm mb-8">Bảo mật tài khoản của bạn</p>
 
-          <div className={`p-6 rounded-2xl font-mono text-sm overflow-x-auto ${isDark ? "bg-slate-950 text-emerald-400" : "bg-gray-900 text-emerald-400"}`}>
-            <div className="space-y-4">
-              <div>
-                <span className="text-pink-400">POST</span> /api/blog
-              </div>
-              <div>
-                <span className="text-slate-500">// Headers</span><br/>
-                Content-Type: application/json
-              </div>
-              <div>
-                <span className="text-slate-500">// Body Structure</span><br/>
-                {`{
-  "titleVi": "Tiêu đề tiếng Việt",
-  "titleEn": "English Title",
-  "excerptVi": "Mô tả ngắn tiếng Việt",
-  "excerptEn": "English short description",
-  "contentVi": "<h1>Nội dung HTML...</h1>",
-  "contentEn": "<h1>HTML Content...</h1>",
-  "seoTitle": "SEO Title (Dành cho Google)",
-  "seoDescription": "Mô tả chuẩn SEO",
-  "category": "Solar",
-  "published": true
-}`}
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-6 flex items-center gap-4 text-xs text-slate-500">
-            <div className="flex items-center gap-1"><Key size={14} /> Password: vimsolar99</div>
-            <div className="flex items-center gap-1"><Code size={14} /> Method: JSON POST</div>
-          </div>
+              <form onSubmit={handleChangePassword} className="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Mật khẩu hiện tại</label>
+                  <input type="password" required value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Mật khẩu mới</label>
+                  <input type="password" required value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none" />
+                </div>
+                
+                {passMsg.text && (
+                  <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${passMsg.type === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                    {passMsg.type === 'error' ? <AlertCircle size={16}/> : <CheckCircle size={16}/>} {passMsg.text}
+                  </div>
+                )}
+
+                <button type="submit" className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold rounded-xl shadow-lg shadow-amber-600/20">
+                  Cập Nhật Mật Khẩu
+                </button>
+              </form>
+            </motion.div>
+          )}
+
         </div>
       </main>
 
-      {/* Editor Modal */}
+      {/* Editor Modal for Blog */}
       <AnimatePresence>
         {isEditorOpen && editingPost && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -222,7 +541,7 @@ export default function AdminDashboard() {
                 <button onClick={() => setIsEditorOpen(false)} className="text-slate-400 hover:text-white">Đóng</button>
               </div>
               
-              <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-8 space-y-8">
+              <form onSubmit={savePost} className="flex-1 overflow-y-auto p-8 space-y-8">
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
@@ -260,48 +579,37 @@ export default function AdminDashboard() {
 
                 <div className="h-px bg-white/5" />
 
-                {/* SEO Section - IMPORTANT per friend's advice */}
+                {/* SEO Section */}
                 <div className="bg-amber-600/5 border border-amber-600/20 p-6 rounded-2xl space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-600 p-2 rounded-lg"><Search size={20} className="text-white" /></div>
-                    <h3 className="text-white font-black text-xl">Cấu Hình SEO (Dành riêng cho Google)</h3>
+                    <h3 className="text-white font-black text-xl">Cấu Hình SEO</h3>
                   </div>
-                  <p className="text-slate-400 text-xs italic">💡 Ghi chú của chuyên gia: Title SEO và Description SEO phải khác Tiêu đề bài viết để tối ưu hóa từ khóa. Tuyệt đối không để trống.</p>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-xs text-amber-500 block mb-1 uppercase font-black tracking-widest">SEO Title *</label>
-                      <input type="text" value={editingPost.seoTitle} onChange={(e) => setEditingPost({...editingPost, seoTitle: e.target.value})} className="w-full bg-slate-900 border border-amber-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 placeholder:text-slate-600" placeholder="VD: 5 Cách Lắp Điện Mặt Trời HY Tiết Kiệm | VimSolar" required />
+                      <input type="text" value={editingPost.seoTitle} onChange={(e) => setEditingPost({...editingPost, seoTitle: e.target.value})} className="w-full bg-slate-900 border border-amber-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 placeholder:text-slate-600" required />
                     </div>
                     <div>
                       <label className="text-xs text-amber-500 block mb-1 uppercase font-black tracking-widest">SEO Description *</label>
-                      <textarea value={editingPost.seoDescription} onChange={(e) => setEditingPost({...editingPost, seoDescription: e.target.value})} className="w-full bg-slate-900 border border-amber-600/30 rounded-xl px-4 py-3 text-white h-24 focus:outline-none focus:border-amber-500 placeholder:text-slate-600" placeholder="Mô tả chuẩn SEO chứa từ khóa quan trọng..." required />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-xs text-amber-500 block mb-1 uppercase font-black tracking-widest">SEO Image URL</label>
-                      <input type="text" value={editingPost.seoImage} onChange={(e) => setEditingPost({...editingPost, seoImage: e.target.value})} className="w-full bg-slate-900 border border-amber-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" placeholder="/images/blog/your-image.png" />
+                      <textarea value={editingPost.seoDescription} onChange={(e) => setEditingPost({...editingPost, seoDescription: e.target.value})} className="w-full bg-slate-900 border border-amber-600/30 rounded-xl px-4 py-3 text-white h-24 focus:outline-none focus:border-amber-500 placeholder:text-slate-600" required />
                     </div>
                   </div>
                 </div>
 
                 {/* Metadata */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Slug URL</label>
-                    <input type="text" value={editingPost.slug} onChange={(e) => setEditingPost({...editingPost, slug: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" placeholder="tu-dong-tao-neu-de-trong" />
+                    <input type="text" value={editingPost.slug} onChange={(e) => setEditingPost({...editingPost, slug: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Chuyên mục</label>
                     <select value={editingPost.category} onChange={(e) => setEditingPost({...editingPost, category: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-sm">
                       <option value="Solar">Solar</option>
                       <option value="Automation">Automation</option>
-                      <option value="Affiliate">Affiliate</option>
                       <option value="Tutorial">Tutorial</option>
                     </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Tác giả</label>
-                    <input type="text" value={editingPost.author} onChange={(e) => setEditingPost({...editingPost, author: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-sm" />
                   </div>
                   <div className="flex items-center gap-2 pt-6">
                     <input type="checkbox" checked={editingPost.published} onChange={(e) => setEditingPost({...editingPost, published: e.target.checked})} className="w-5 h-5 accent-amber-600" />
@@ -320,6 +628,42 @@ export default function AdminDashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Staff Modal */}
+      <AnimatePresence>
+        {isStaffModalOpen && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsStaffModalOpen(false)} />
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95 }} 
+               animate={{ opacity: 1, scale: 1 }} 
+               exit={{ opacity: 0, scale: 0.95 }}
+               className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl"
+             >
+               <h2 className="text-xl font-black mb-6 flex items-center gap-2"><UserPlus/> Thêm Nhân Sự</h2>
+               <form onSubmit={addStaff} className="space-y-4">
+                 <div>
+                   <label className="text-xs font-bold text-slate-400 block mb-1">Tài khoản đăng nhập</label>
+                   <input required type="text" value={newStaff.username} onChange={e => setNewStaff({...newStaff, username: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-amber-500" />
+                 </div>
+                 <div>
+                   <label className="text-xs font-bold text-slate-400 block mb-1">Tên hiển thị</label>
+                   <input required type="text" value={newStaff.name} onChange={e => setNewStaff({...newStaff, name: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-amber-500" />
+                 </div>
+                 <div>
+                   <label className="text-xs font-bold text-slate-400 block mb-1">Mật khẩu (mặc định: vimsolar123)</label>
+                   <input type="text" value={newStaff.password} onChange={e => setNewStaff({...newStaff, password: e.target.value})} placeholder="vimsolar123" className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-amber-500" />
+                 </div>
+                 <div className="pt-4 flex gap-3">
+                   <button type="button" onClick={() => setIsStaffModalOpen(false)} className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold">Hủy</button>
+                   <button type="submit" className="flex-1 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold">Thêm Staff</button>
+                 </div>
+               </form>
+             </motion.div>
+           </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

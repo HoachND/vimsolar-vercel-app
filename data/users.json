@@ -1,0 +1,12 @@
+[
+  {
+    "id": "admin_001",
+    "username": "admin",
+    "password": "vimsolar99",
+    "name": "Admin VimSolar",
+    "email": "solar.vimgroup@gmail.com",
+    "phone": "0974516670",
+    "role": "admin",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
+]

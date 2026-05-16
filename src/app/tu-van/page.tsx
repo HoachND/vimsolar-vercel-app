@@ -1,11 +1,11 @@
 "use client";
 import { I18nProvider } from "@/context/I18nContext";
-import ROIConsultant from "@/components/ROIConsultant";
+import ROIAccessGate from "@/components/ROIAccessGate";
 
 export default function TuVanPage() {
   return (
     <I18nProvider>
-      <ROIConsultant />
+      <ROIAccessGate />
     </I18nProvider>
   );
 }
