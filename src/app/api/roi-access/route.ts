@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readData, writeData } from "@/lib/storage";
-
-interface ROIAccess {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  accessCode: string;
-  createdAt: string;
-  expiresAt: string;
-}
+import { pool, initDb } from "@/lib/db";
 
 // Generate a 6-char code
 function generateCode(): string {
@@ -24,57 +14,38 @@ const GLOBAL_SHEET_ID = "1LAtBjiRbwTxt7qu9XSYwzbVMNYBvC6guq-Zv_Yp3Cf0";
 
 export async function POST(req: NextRequest) {
   try {
+    await initDb();
     const body = await req.json();
     const { action } = body;
 
     // Register for ROI access (new member)
     if (action === "register") {
       const { name, phone, email } = body;
-
-      // Validate phone: must be exactly 10 digits
       const phoneClean = phone.replace(/\D/g, "");
-      if (phoneClean.length !== 10) {
-        return NextResponse.json(
-          { error: "Số điện thoại phải đúng 10 số!" },
-          { status: 400 }
-        );
-      }
+      if (phoneClean.length !== 10) return NextResponse.json({ error: "Số điện thoại phải đúng 10 số!" }, { status: 400 });
+      if (!email || !email.includes("@")) return NextResponse.json({ error: "Email không hợp lệ! Phải có ký tự @" }, { status: 400 });
 
-      // Validate email: must contain @
-      if (!email || !email.includes("@")) {
-        return NextResponse.json(
-          { error: "Email không hợp lệ! Phải có ký tự @" },
-          { status: 400 }
-        );
-      }
-
-      const accessList = readData<ROIAccess[]>("roi-access.json");
-      // Check if already registered by phone
-      const existing = accessList.find((a) => a.phone === phoneClean);
-      if (existing && new Date(existing.expiresAt) > new Date()) {
+      // Check if already registered
+      const checkRes = await pool.query(
+        `SELECT access_code, expires_at FROM vimsolar_roi_access WHERE phone = $1 AND expires_at > CURRENT_TIMESTAMP`,
+        [phoneClean]
+      );
+      if (checkRes.rowCount && checkRes.rowCount > 0) {
         return NextResponse.json({
           success: true,
-          accessCode: existing.accessCode,
+          accessCode: checkRes.rows[0].access_code,
           message: "Bạn đã đăng ký trước đó. Đây là mã truy cập của bạn.",
         });
       }
 
       const code = generateCode();
-      const now = new Date();
-      const expires = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+      const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      const newId = Date.now().toString();
 
-      const newAccess: ROIAccess = {
-        id: Date.now().toString(),
-        name,
-        phone: phoneClean,
-        email,
-        accessCode: code,
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
-      };
-
-      accessList.push(newAccess);
-      writeData("roi-access.json", accessList);
+      await pool.query(
+        `INSERT INTO vimsolar_roi_access (id, name, phone, email, access_code, expires_at) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [newId, name, phoneClean, email, code, expires]
+      );
 
       // Send Telegram notification
       const tgMessage = `🔐 ĐĂNG KÝ ROI TOOL - VIMSOLAR!
@@ -89,40 +60,24 @@ export async function POST(req: NextRequest) {
 
       try {
         await Promise.all([
-          // Telegram
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ chat_id: CHAT_ID, text: tgMessage }),
           }),
-          // Google Sheet - Project
           fetch(PROJECT_GAS_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              name,
-              phone: phoneClean,
-              email,
-              projectType: "Đăng ký ROI Tool",
-              source: "solar.vimgroup.vn (roi-register)",
-            }),
+            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)" }),
           }),
-          // Google Sheet - TOTAL
           fetch(GLOBAL_GAS_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              name,
-              phone: phoneClean,
-              email,
-              projectType: "Đăng ký ROI Tool",
-              source: "solar.vimgroup.vn (roi-register)",
-              targetSheetId: GLOBAL_SHEET_ID,
-            }),
+            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
           }),
         ]);
       } catch (syncError) {
-        console.error("Sync error (non-blocking):", syncError);
+        console.error("Sync error:", syncError);
       }
 
       return NextResponse.json({
@@ -136,44 +91,26 @@ export async function POST(req: NextRequest) {
     if (action === "verify") {
       const { accessCode, username, password } = body;
 
-      // Check access code from ROI registrations
       if (accessCode) {
-        const accessList = readData<ROIAccess[]>("roi-access.json");
-        const found = accessList.find(
-          (a) => a.accessCode === accessCode.toUpperCase() && new Date(a.expiresAt) > new Date()
+        const checkRes = await pool.query(
+          `SELECT name FROM vimsolar_roi_access WHERE access_code = $1 AND expires_at > CURRENT_TIMESTAMP`,
+          [accessCode.toUpperCase()]
         );
-        if (found) {
-          return NextResponse.json({
-            success: true,
-            name: found.name,
-            type: "member",
-          });
+        if (checkRes.rowCount && checkRes.rowCount > 0) {
+          return NextResponse.json({ success: true, name: checkRes.rows[0].name, type: "member" });
         }
-        return NextResponse.json(
-          { error: "Mã truy cập không hợp lệ hoặc đã hết hạn!" },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: "Mã truy cập không hợp lệ hoặc đã hết hạn!" }, { status: 401 });
       }
 
-      // Check staff/admin login
       if (username && password) {
-        const users = readData<{ username: string; email: string; password: string; name: string; role: string; }[]>("users.json");
-        const user = users.find(
-          (u) =>
-            (u.username === username || u.email === username) &&
-            u.password === password
+        const res = await pool.query(
+          `SELECT name, role FROM vimsolar_users WHERE (username = $1 OR email = $1) AND password = $2`,
+          [username, password]
         );
-        if (user) {
-          return NextResponse.json({
-            success: true,
-            name: user.name,
-            type: user.role,
-          });
+        if (res.rowCount && res.rowCount > 0) {
+          return NextResponse.json({ success: true, name: res.rows[0].name, type: res.rows[0].role });
         }
-        return NextResponse.json(
-          { error: "Sai tên đăng nhập hoặc mật khẩu!" },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: "Sai tên đăng nhập hoặc mật khẩu!" }, { status: 401 });
       }
 
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
