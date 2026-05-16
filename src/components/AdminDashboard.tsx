@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, FileText, Plus, LogOut, Moon, Sun, Save, Trash2, ChevronLeft, Globe, Search, Eye, EyeOff, Code, Terminal, Key, Users, UserPlus, Music, Shield, AlertCircle, CheckCircle } from "lucide-react";
 import Image from "next/image";
-import { BlogPost } from "@/app/api/blog/route";
+import { BlogPost } from "@/lib/types";
 
 interface User {
   id: string;
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
                       id: "", slug: "", titleVi: "", titleEn: "", excerptVi: "", excerptEn: "", 
                       contentVi: "", contentEn: "", category: "Solar", 
                       seoTitle: "", seoDescription: "", seoImage: "", 
-                      tags: [], author: user.name, published: true, createdAt: "", updatedAt: "" 
+                      tags: "", author: user.name, published: true, createdAt: "", updatedAt: "" 
                     });
                     setIsEditorOpen(true);
                   }}

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2, AlertCircle, Facebook, Globe } from "lucide-react";
+import { Phone, MapPin, Mail, Factory, CheckCircle, Loader2, AlertCircle, Globe } from "lucide-react";
+
+const FacebookIcon = ({ className, size }: { className?: string; size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size || 22} height={size || 22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+  </svg>
+);
 import { useI18n } from "@/context/I18nContext";
 
 export default function ContactForm() {
@@ -143,7 +149,7 @@ export default function ContactForm() {
               </li>
               <li className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <Facebook className="text-blue-400" size={22} />
+                  <FacebookIcon className="text-blue-400" size={22} />
                 </div>
                 <div>
                   <strong className="block text-white text-lg">Facebook</strong>

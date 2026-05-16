@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Image from "next/image";
-import { BlogPost } from "@/app/api/blog/route";
+import { BlogPost } from "@/lib/types";
 
 export default function BlogList() {
   const { language, t } = useI18n();

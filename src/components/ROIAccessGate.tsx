@@ -45,6 +45,8 @@ export default function ROIAccessGate() {
   const saveAccess = (name: string) => {
     const expiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
     localStorage.setItem("vimsolar-roi-access", JSON.stringify({ name, expiry }));
+    setSuccessMsg("");
+    setAccessCode("");
     setHasAccess(true);
     setUserName(name);
   };

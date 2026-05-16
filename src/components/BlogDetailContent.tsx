@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Image from "next/image";
-import { BlogPost } from "@/app/api/blog/route";
+import { BlogPost } from "@/lib/types";
 import { ChevronLeft, Calendar, User, Tag } from "lucide-react";
 
 export default function BlogDetailContent({ post }: { post: BlogPost }) {
@@ -55,9 +55,9 @@ export default function BlogDetailContent({ post }: { post: BlogPost }) {
           />
 
           <div className="mt-16 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
-            {post.tags.map(tag => (
+            {(typeof post.tags === "string" ? post.tags.split(",").filter(Boolean) : Array.isArray(post.tags) ? post.tags : []).map(tag => (
               <span key={tag} className="flex items-center gap-1 text-xs bg-gray-50 text-gray-500 px-3 py-1.5 rounded-lg border border-gray-100">
-                <Tag size={12} /> {tag}
+                <Tag size={12} /> {tag.trim()}
               </span>
             ))}
           </div>

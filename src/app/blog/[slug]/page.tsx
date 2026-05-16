@@ -1,23 +1,26 @@
 import { Metadata } from "next";
-import { BlogPost } from "@/app/api/blog/route";
-import fs from "fs";
-import path from "path";
+import { pool, initDb } from "@/lib/db";
 import { I18nProvider } from "@/context/I18nContext";
 import BlogDetailContent from "@/components/BlogDetailContent";
+import { BlogPost } from "@/lib/types";
 
-const DATA_FILE = path.join(process.cwd(), "data", "blog-posts.json");
-
-function getPost(slug: string): BlogPost | undefined {
-  if (!fs.existsSync(DATA_FILE)) return undefined;
-  const posts: BlogPost[] = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-  return posts.find((p) => p.slug === slug);
+async function getPost(slug: string): Promise<BlogPost | undefined> {
+  try {
+    await initDb();
+    const res = await pool.query(
+      `SELECT id, slug, title_vi as "titleVi", title_en as "titleEn", excerpt_vi as "excerptVi", excerpt_en as "excerptEn", content_vi as "contentVi", content_en as "contentEn", category, seo_title as "seoTitle", seo_description as "seoDescription", seo_image as "seoImage", tags, author, published, created_at as "createdAt", updated_at as "updatedAt" FROM vimsolar_blogs WHERE slug = $1`,
+      [slug]
+    );
+    return res.rows[0] || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = getPost(params.slug);
+  const post = await getPost(params.slug);
   if (!post) return { title: "Not Found" };
 
-  // SỬ DỤNG FIELD SEO RIÊNG BIỆT NHƯ BẠN SẾP TƯ VẤN
   return {
     title: post.seoTitle || post.titleVi,
     description: post.seoDescription || post.excerptVi,
@@ -38,8 +41,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function BlogDetailPage({ params }: { params: { slug: string } }) {
-  const post = getPost(params.slug);
+export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
+  const post = await getPost(params.slug);
   if (!post) return <div>Post not found</div>;
 
   return (
