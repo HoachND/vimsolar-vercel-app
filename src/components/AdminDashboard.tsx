@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState("");
   
   const [isDark, setIsDark] = useState(true);
-  const [activeTab, setActiveTab] = useState<"blog" | "staff" | "music" | "profile">("blog");
+  const [activeTab, setActiveTab] = useState<"blog" | "api" | "staff" | "music" | "profile">("blog");
   
   // Blog State
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -37,7 +37,27 @@ export default function AdminDashboard() {
 
   // Music State
   const [playlist, setPlaylist] = useState<{ title: string; url: string }[]>([]);
+  // Automation State
+  const [copied, setCopied] = useState<string | null>(null);
 
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const blogPayload = `{
+  "titleVi": "Top 5 xu hướng lắp đặt điện mặt trời 2026",
+  "titleEn": "Top 5 solar installation trends in 2026",
+  "contentVi": "<h1>Nội dung bài viết chuẩn HTML ở đây...</h1>",
+  "contentEn": "<h1>HTML Content here...</h1>",
+  "excerptVi": "Tóm tắt ngắn tiếng Việt",
+  "excerptEn": "English short description",
+  "seoTitle": "Top 5 xu hướng lắp đặt điện mặt trời 2026",
+  "seoDescription": "Tìm hiểu chi tiết 5 xu hướng lắp đặt điện năng lượng mặt trời mới nhất...",
+  "category": "Solar",
+  "published": true
+}`;
   // Profile/Password State
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -306,6 +326,9 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab("blog")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "blog" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
             <LayoutDashboard size={20} /> Quản lý Blog
           </button>
+          <button onClick={() => setActiveTab("api")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "api" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+            <Terminal size={20} /> API & Tự động hóa
+          </button>
           {user.role === "admin" && (
             <button onClick={() => setActiveTab("staff")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "staff" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
               <Users size={20} /> Quản lý Nhân sự
@@ -368,23 +391,66 @@ export default function AdminDashboard() {
                 ))}
               </div>
 
-              {/* API Docs */}
-              {user.role === "admin" && (
-                <div className={`mt-16 p-8 rounded-3xl border ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-100 shadow-xl"}`}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl"><Terminal size={24} /></div>
+            </motion.div>
+          )}
+
+          {/* TAB: API & AUTOMATION */}
+          {activeTab === "api" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
+              <div className="mb-8">
+                <h1 className="text-3xl font-black mb-2 flex items-center gap-3"><Terminal className="text-emerald-500" /> API & Webhook Tự Động Hóa</h1>
+                <p className="text-slate-400 text-sm">
+                  Tài liệu hướng dẫn kết nối n8n, Make, Zapier để tự động đăng bài viết lên VimSolar.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                {/* Connection Info */}
+                <div className={`p-6 rounded-3xl border-l-4 border-emerald-500 ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-200 shadow-lg"}`}>
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">🔗 Thông Tin Kết Nối Chung</h2>
+                  <div className="space-y-4">
                     <div>
-                      <h2 className="text-xl font-black">Blog API - Automation</h2>
-                      <p className="text-sm text-slate-500">Dùng cho Make.com / n8n</p>
+                      <label className="text-xs font-semibold uppercase opacity-60 mb-1 block">Endpoint URL (Method: POST)</label>
+                      <div className="flex items-center gap-2">
+                        <code className={`flex-1 p-3 rounded-xl text-sm border font-mono text-emerald-500 ${isDark ? "bg-slate-950 border-white/10" : "bg-gray-50 border-gray-200"}`}>
+                          https://solar.vimgroup.vn/api/blog
+                        </code>
+                        <button onClick={() => handleCopy("https://solar.vimgroup.vn/api/blog", "url")} className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-bold transition-all text-sm">
+                          {copied === "url" ? "✅ Đã copy" : "📋 Copy"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className={`p-6 rounded-2xl font-mono text-sm overflow-x-auto ${isDark ? "bg-slate-950 text-emerald-400" : "bg-gray-900 text-emerald-400"}`}>
-                    POST /api/blog<br/>
-                    Content-Type: application/json<br/>
-                    {`{ "titleVi": "...", "contentVi": "...", "seoTitle": "..." }`}
+                </div>
+
+                {/* Blog Payload */}
+                <div className={`p-6 rounded-3xl border ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-200 shadow-lg"}`}>
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">📝 Đăng Bài Viết (Blog)</h2>
+                  <p className="text-sm mb-4 text-slate-400">
+                    Gửi payload JSON sau để tạo bài viết mới. Các trường <code className="bg-slate-800 px-1 py-0.5 rounded text-amber-500">titleVi</code> và <code className="bg-slate-800 px-1 py-0.5 rounded text-amber-500">contentVi</code> là bắt buộc.
+                  </p>
+                  <div className="relative group">
+                    <pre className={`p-4 rounded-xl text-sm border overflow-x-auto font-mono text-amber-400 ${isDark ? "bg-slate-950 border-white/10" : "bg-gray-900 border-gray-800"}`}>
+                      {blogPayload}
+                    </pre>
+                    <button onClick={() => handleCopy(blogPayload, "blog")} className="absolute top-3 right-3 px-3 py-1.5 bg-amber-500 text-slate-900 rounded-lg font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                      {copied === "blog" ? "✅ Đã copy" : "📋 Copy JSON"}
+                    </button>
                   </div>
                 </div>
-              )}
+
+                {/* Instructions */}
+                <div className={`p-6 rounded-3xl border ${isDark ? "bg-slate-900 border-white/10" : "bg-white border-gray-200 shadow-lg"}`}>
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">⚙️ Hướng dẫn cài đặt trên n8n / Make</h2>
+                  <ol className="list-decimal list-inside space-y-3 text-sm text-slate-400">
+                    <li>Tạo một node <strong>HTTP Request</strong>.</li>
+                    <li>Method: <code className="bg-slate-800 px-1 py-0.5 rounded text-emerald-500">POST</code></li>
+                    <li>URL: Điền Endpoint URL ở trên.</li>
+                    <li>Headers: <code>Content-Type: application/json</code></li>
+                    <li>Body: Bật <strong>Send JSON</strong> và paste JSON payload vào phần Body. Các giá trị trong JSON có thể dùng AI để xuất ra động (dynamic).</li>
+                  </ol>
+                </div>
+              </div>
             </motion.div>
           )}
 

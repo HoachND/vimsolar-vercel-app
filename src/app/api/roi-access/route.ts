@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
-const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
-const ACCESS_FILE = path.join(DATA_DIR, "roi-access.json");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
+import { readData, writeData } from "@/lib/storage";
 
 interface ROIAccess {
   id: string;
@@ -15,22 +9,6 @@ interface ROIAccess {
   accessCode: string;
   createdAt: string;
   expiresAt: string;
-}
-
-function ensureFile(f: string) {
-  const dir = path.dirname(f);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(f)) fs.writeFileSync(f, "[]", "utf-8");
-}
-
-function readAccess(): ROIAccess[] {
-  ensureFile(ACCESS_FILE);
-  return JSON.parse(fs.readFileSync(ACCESS_FILE, "utf-8"));
-}
-
-function writeAccess(data: ROIAccess[]) {
-  ensureFile(ACCESS_FILE);
-  fs.writeFileSync(ACCESS_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
 // Generate a 6-char code
@@ -70,7 +48,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const accessList = readAccess();
+      const accessList = readData<ROIAccess[]>("roi-access.json");
       // Check if already registered by phone
       const existing = accessList.find((a) => a.phone === phoneClean);
       if (existing && new Date(existing.expiresAt) > new Date()) {
@@ -96,7 +74,7 @@ export async function POST(req: NextRequest) {
       };
 
       accessList.push(newAccess);
-      writeAccess(accessList);
+      writeData("roi-access.json", accessList);
 
       // Send Telegram notification
       const tgMessage = `🔐 ĐĂNG KÝ ROI TOOL - VIMSOLAR!
@@ -160,7 +138,7 @@ export async function POST(req: NextRequest) {
 
       // Check access code from ROI registrations
       if (accessCode) {
-        const accessList = readAccess();
+        const accessList = readData<ROIAccess[]>("roi-access.json");
         const found = accessList.find(
           (a) => a.accessCode === accessCode.toUpperCase() && new Date(a.expiresAt) > new Date()
         );
@@ -179,10 +157,9 @@ export async function POST(req: NextRequest) {
 
       // Check staff/admin login
       if (username && password) {
-        ensureFile(USERS_FILE);
-        const users = JSON.parse(fs.readFileSync(USERS_FILE, "utf-8"));
+        const users = readData<{ username: string; email: string; password: string; name: string; role: string; }[]>("users.json");
         const user = users.find(
-          (u: { username: string; email: string; password: string }) =>
+          (u) =>
             (u.username === username || u.email === username) &&
             u.password === password
         );

@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_URL;
-const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "data");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
+import { readData, writeData } from "@/lib/storage";
 
 interface User {
   id: string;
@@ -17,22 +12,6 @@ interface User {
   createdAt: string;
 }
 
-function ensureFile() {
-  const dir = path.dirname(USERS_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]", "utf-8");
-}
-
-function readUsers(): User[] {
-  ensureFile();
-  return JSON.parse(fs.readFileSync(USERS_FILE, "utf-8"));
-}
-
-function writeUsers(users: User[]) {
-  ensureFile();
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
-}
-
 // POST: Login / Register / Change Password / Update Profile / Add Staff
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     if (action === "login") {
       const { username, password } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const user = users.find(
         (u) =>
           (u.username === username || u.email === username) &&
@@ -59,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     if (action === "change-password") {
       const { userId, currentPassword, newPassword } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const idx = users.findIndex((u) => u.id === userId);
       if (idx === -1)
         return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -70,27 +49,27 @@ export async function POST(req: NextRequest) {
         );
       }
       users[idx].password = newPassword;
-      writeUsers(users);
+      writeData("users.json", users);
       return NextResponse.json({ success: true, message: "Đổi mật khẩu thành công!" });
     }
 
     if (action === "update-profile") {
       const { userId, name, email, phone } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const idx = users.findIndex((u) => u.id === userId);
       if (idx === -1)
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       if (name) users[idx].name = name;
       if (email) users[idx].email = email;
       if (phone) users[idx].phone = phone;
-      writeUsers(users);
+      writeData("users.json", users);
       const { password: _, ...safeUser } = users[idx];
       return NextResponse.json({ success: true, user: safeUser });
     }
 
     if (action === "add-staff") {
       const { adminId, username, password, name, email, phone, role } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const admin = users.find((u) => u.id === adminId && u.role === "admin");
       if (!admin) {
         return NextResponse.json(
@@ -115,14 +94,14 @@ export async function POST(req: NextRequest) {
         createdAt: new Date().toISOString(),
       };
       users.push(newUser);
-      writeUsers(users);
+      writeData("users.json", users);
       const { password: _, ...safeUser } = newUser;
       return NextResponse.json({ success: true, user: safeUser }, { status: 201 });
     }
 
     if (action === "delete-staff") {
       const { adminId, userId } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const admin = users.find((u) => u.id === adminId && u.role === "admin");
       if (!admin)
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
@@ -135,13 +114,13 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       const filtered = users.filter((u) => u.id !== userId);
-      writeUsers(filtered);
+      writeData("users.json", filtered);
       return NextResponse.json({ success: true });
     }
 
     if (action === "change-role") {
       const { adminId, userId, newRole } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const admin = users.find((u) => u.id === adminId && u.role === "admin");
       if (!admin)
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
@@ -149,13 +128,13 @@ export async function POST(req: NextRequest) {
       if (idx === -1)
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       users[idx].role = newRole;
-      writeUsers(users);
+      writeData("users.json", users);
       return NextResponse.json({ success: true });
     }
 
     if (action === "list-users") {
       const { adminId } = body;
-      const users = readUsers();
+      const users = readData<User[]>("users.json");
       const admin = users.find(
         (u) => u.id === adminId && (u.role === "admin" || u.role === "staff")
       );
