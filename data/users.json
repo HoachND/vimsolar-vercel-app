@@ -8,5 +8,25 @@
     "phone": "0974516670",
     "role": "admin",
     "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "staff_001",
+    "username": "staff",
+    "password": "vimgroup99",
+    "name": "VimSolar Staff",
+    "email": "",
+    "phone": "",
+    "role": "staff",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "sale_001",
+    "username": "sale",
+    "password": "vimgroup99",
+    "name": "VimSolar Sale",
+    "email": "",
+    "phone": "",
+    "role": "staff",
+    "createdAt": "2026-01-01T00:00:00.000Z"
   }
 ]
