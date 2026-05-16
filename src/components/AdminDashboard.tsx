@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [loginPass, setLoginPass] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [showLoginPass, setShowLoginPass] = useState(false);
   
   const [isDark, setIsDark] = useState(true);
   const [activeTab, setActiveTab] = useState<"blog" | "api" | "staff" | "music" | "profile">("blog");
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
   const [staffList, setStaffList] = useState<User[]>([]);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [newStaff, setNewStaff] = useState({ username: "", password: "", name: "", email: "", phone: "", role: "staff" });
+  const [showStaffPass, setShowStaffPass] = useState(false);
 
   // Music State
   const [playlist, setPlaylist] = useState<{ title: string; url: string }[]>([]);
@@ -62,6 +64,8 @@ export default function AdminDashboard() {
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [passMsg, setPassMsg] = useState({ text: "", type: "" });
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
 
   useEffect(() => {
     // Attempt to load session from local storage (simple demo)
@@ -568,11 +572,21 @@ export default function AdminDashboard() {
               <form onSubmit={handleChangePassword} className="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-4">
                 <div>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Mật khẩu hiện tại</label>
-                  <input type="password" required value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none" />
+                  <div className="relative">
+                    <input type={showCurrentPass ? "text" : "password"} required value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none pr-10" />
+                    <button type="button" onClick={() => setShowCurrentPass(!showCurrentPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                      {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Mật khẩu mới</label>
-                  <input type="password" required value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none" />
+                  <div className="relative">
+                    <input type={showNewPass ? "text" : "password"} required value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:border-amber-500 outline-none pr-10" />
+                    <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                      {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 
                 {passMsg.text && (
@@ -718,7 +732,12 @@ export default function AdminDashboard() {
                  </div>
                  <div>
                    <label className="text-xs font-bold text-slate-400 block mb-1">Mật khẩu (mặc định: vimsolar123)</label>
-                   <input type="text" value={newStaff.password} onChange={e => setNewStaff({...newStaff, password: e.target.value})} placeholder="vimsolar123" className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-amber-500" />
+                   <div className="relative">
+                     <input type={showStaffPass ? "text" : "password"} value={newStaff.password} onChange={e => setNewStaff({...newStaff, password: e.target.value})} placeholder="vimsolar123" className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-amber-500 pr-10" />
+                     <button type="button" onClick={() => setShowStaffPass(!showStaffPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                       {showStaffPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                     </button>
+                   </div>
                  </div>
                  <div className="pt-4 flex gap-3">
                    <button type="button" onClick={() => setIsStaffModalOpen(false)} className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold">Hủy</button>
