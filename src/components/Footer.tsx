@@ -8,6 +8,7 @@ export default function Footer() {
   const { t, language } = useI18n();
   const isEn = language === "en";
 
+  // Version: 1.0.5 - Contact Links Update
   return (
     <footer className="bg-[#0a0f1a] text-gray-400 pt-20 pb-10 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -159,8 +159,8 @@ export default function ROIAccessGate() {
     setMode("choice");
   };
 
-  // If has access, show ROI tool
-  if (hasAccess) {
+  // If has access, show ROI tool (but only if we're not currently showing a success message)
+  if (hasAccess && !successMsg) {
     return (
       <div>
         {/* Access bar */}
