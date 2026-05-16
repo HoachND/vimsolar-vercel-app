@@ -32,8 +32,9 @@ export default function BackgroundMusic() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          const shuffled = [...data].sort(() => Math.random() - 0.5);
-          setPlaylist(shuffled);
+          setPlaylist(data);
+          const randomIndex = Math.floor(Math.random() * data.length);
+          setCurrentIndex(randomIndex);
         }
       })
       .catch(() => {});
