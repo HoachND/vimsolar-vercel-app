@@ -15,8 +15,16 @@ async function getPost(slug: string): Promise<BlogPost | undefined> {
       [slug]
     );
     return res.rows[0] || undefined;
-  } catch {
-    return undefined;
+  } catch (err: any) {
+    return {
+      id: "error",
+      slug: slug,
+      titleVi: "Error fetching post",
+      contentVi: "Error: " + err.message + " | Slug: " + slug,
+      excerptVi: "",
+      seoImage: "",
+      published: true
+    } as any;
   }
 }
 
@@ -46,7 +54,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
-  if (!post) return <div>Post not found</div>;
+  if (!post) return <div className="pt-32 text-center text-red-500">Post not found for slug: {params.slug}</div>;
 
   return (
     <I18nProvider>

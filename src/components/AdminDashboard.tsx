@@ -684,15 +684,28 @@ export default function AdminDashboard() {
                     <input type="text" value={editingPost.slug} onChange={(e) => setEditingPost({...editingPost, slug: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">URL Ảnh Bìa (Cover Image)</label>
-                    <input type="text" placeholder="/images/blog/blog1.png" value={editingPost.seoImage} onChange={(e) => setEditingPost({...editingPost, seoImage: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                    <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Ảnh Bìa (Upload / URL)</label>
+                    <div className="flex flex-col gap-2">
+                      <input type="text" placeholder="Nhập URL ảnh..." value={editingPost.seoImage} onChange={(e) => setEditingPost({...editingPost, seoImage: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                      <input type="file" accept="image/*" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 1024 * 1024) { alert("Vui lòng chọn ảnh nhỏ hơn 1MB để tối ưu tốc độ!"); return; }
+                          const reader = new FileReader();
+                          reader.onloadend = () => setEditingPost({...editingPost, seoImage: reader.result as string});
+                          reader.readAsDataURL(file);
+                        }
+                      }} className="text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500/10 file:text-amber-500 hover:file:bg-amber-500/20" />
+                    </div>
                   </div>
                   <div>
                     <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Chuyên mục</label>
                     <select value={editingPost.category} onChange={(e) => setEditingPost({...editingPost, category: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-sm">
-                      <option value="Solar">Solar</option>
-                      <option value="Automation">Automation</option>
-                      <option value="Tutorial">Tutorial</option>
+                      <option value="Điện Mặt Trời Gia Đình">Điện Mặt Trời Gia Đình</option>
+                      <option value="Điện Mặt Trời Doanh Nghiệp">Điện Mặt Trời Doanh Nghiệp</option>
+                      <option value="Kiến Thức Năng Lượng">Kiến Thức Năng Lượng</option>
+                      <option value="Giải Pháp Hybrid">Giải Pháp Hybrid</option>
+                      <option value="Tin Tức Dự Án">Tin Tức Dự Án</option>
                     </select>
                   </div>
                   <div className="flex items-center gap-2 pt-6">
