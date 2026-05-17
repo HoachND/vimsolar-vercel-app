@@ -54,7 +54,7 @@ export default function Chatbot() {
   ];
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100]">
+    <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[100]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -136,9 +136,9 @@ export default function Chatbot() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-amber-500 text-white p-4 rounded-full shadow-lg shadow-amber-500/40 flex items-center justify-center relative"
+        className="bg-amber-500 text-white p-3 md:p-4 rounded-full shadow-lg shadow-amber-500/40 flex items-center justify-center relative"
       >
-        <MessageCircle size={28} />
+        <MessageCircle className="w-6 h-6 md:w-7 md:h-7" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-ping"></span>
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
       </motion.button>

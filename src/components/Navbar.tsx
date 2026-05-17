@@ -46,7 +46,7 @@ export default function Navbar() {
                 width={1200}
                 height={400}
                 className={`w-auto object-contain transition-all duration-300 ${
-                  scrolled ? "h-12 md:h-14" : "h-16 md:h-20"
+                  scrolled ? "h-8 sm:h-12 md:h-14" : "h-10 sm:h-16 md:h-20"
                 }`}
                 priority
               />
@@ -71,12 +71,12 @@ export default function Navbar() {
           </div>
 
           {/* Mobile */}
-          <div className="lg:hidden flex items-center gap-3">
-            <button onClick={toggleLanguage} className="text-amber-400"><Globe size={18} /></button>
-            <a href="tel:0974516670" className="flex items-center gap-1 bg-amber-500 text-slate-900 font-bold px-3 py-2 rounded-full text-sm">
-              <Phone size={14} fill="currentColor" /><span>{t("nav_call")}</span>
+          <div className="lg:hidden flex items-center gap-1.5 sm:gap-3">
+            <button onClick={toggleLanguage} className="text-amber-400 p-1"><Globe size={18} /></button>
+            <a href="tel:0974516670" className="flex items-center gap-1 bg-amber-500 text-slate-900 font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm">
+              <Phone size={12} fill="currentColor" /><span>{t("nav_call")}</span>
             </a>
-            <button onClick={() => setIsOpen(!isOpen)} className="text-white">{isOpen ? <X size={28} /> : <Menu size={28} />}</button>
+            <button onClick={() => setIsOpen(!isOpen)} className="text-white p-1">{isOpen ? <X size={24} /> : <Menu size={24} />}</button>
           </div>
         </div>
       </div>

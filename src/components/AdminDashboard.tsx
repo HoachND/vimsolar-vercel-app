@@ -678,10 +678,14 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Metadata */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Slug URL</label>
                     <input type="text" value={editingPost.slug} onChange={(e) => setEditingPost({...editingPost, slug: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">URL Ảnh Bìa (Cover Image)</label>
+                    <input type="text" placeholder="/images/blog/blog1.png" value={editingPost.seoImage} onChange={(e) => setEditingPost({...editingPost, seoImage: e.target.value})} className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-xs" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-400 block mb-1 uppercase font-bold">Chuyên mục</label>

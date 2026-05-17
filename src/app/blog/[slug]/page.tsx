@@ -4,6 +4,9 @@ import { I18nProvider } from "@/context/I18nContext";
 import BlogDetailContent from "@/components/BlogDetailContent";
 import { BlogPost } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getPost(slug: string): Promise<BlogPost | undefined> {
   try {
     await initDb();

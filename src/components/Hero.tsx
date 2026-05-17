@@ -22,7 +22,7 @@ export default function Hero() {
               {t("hero_badge")}
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
-              {t("hero_title_1")}<br className="hidden sm:block" />
+              {t("hero_title_1")}<br className="hidden sm:block" />{" "}
               {t("hero_title_2")} <span className="gradient-text-solar">{t("hero_title_3")}</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-300/90 mb-8 max-w-xl leading-relaxed font-light" dangerouslySetInnerHTML={{ __html: t("hero_desc") }} />
@@ -34,18 +34,18 @@ export default function Hero() {
                 {t("hero_cta2")}
               </a>
             </div>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-6">
               <div className="text-center sm:text-left">
-                <div className="text-3xl md:text-4xl font-black text-amber-400">90%</div>
-                <div className="text-sm text-gray-400 mt-1">{t("hero_stat1")}</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-400">90%</div>
+                <div className="text-[11px] sm:text-sm text-gray-400 mt-1 leading-tight">{t("hero_stat1")}</div>
               </div>
-              <div className="text-center sm:text-left border-l border-white/10 pl-6">
-                <div className="text-3xl md:text-4xl font-black text-amber-400">3-5</div>
-                <div className="text-sm text-gray-400 mt-1">{t("hero_stat2")}</div>
+              <div className="text-center sm:text-left border-l border-white/10 pl-2 sm:pl-6">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-400">3-5</div>
+                <div className="text-[11px] sm:text-sm text-gray-400 mt-1 leading-tight">{t("hero_stat2")}</div>
               </div>
-              <div className="text-center sm:text-left border-l border-white/10 pl-6">
-                <div className="text-3xl md:text-4xl font-black text-amber-400">12+</div>
-                <div className="text-sm text-gray-400 mt-1">{t("hero_stat3")}</div>
+              <div className="text-center sm:text-left border-l border-white/10 pl-2 sm:pl-6">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-400">12+</div>
+                <div className="text-[11px] sm:text-sm text-gray-400 mt-1 leading-tight">{t("hero_stat3")}</div>
               </div>
             </div>
           </motion.div>
