@@ -28,8 +28,9 @@ async function getPost(slug: string): Promise<BlogPost | undefined> {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const post = await getPost(resolvedParams.slug);
   if (!post) return { title: "Not Found" };
 
   return {
@@ -52,9 +53,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
-  if (!post) return <div className="pt-32 text-center text-red-500">Post not found for slug: {params.slug}</div>;
+export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const post = await getPost(resolvedParams.slug);
+  if (!post) return <div className="pt-32 text-center text-red-500">Post not found for slug: {resolvedParams.slug}</div>;
 
   return (
     <I18nProvider>
