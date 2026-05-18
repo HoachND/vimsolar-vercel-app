@@ -4,7 +4,7 @@ import { Phone, MessageCircle } from "lucide-react";
 
 export default function Widgets() {
   return (
-    <div className="fixed bottom-5 right-3 sm:bottom-6 sm:right-4 md:bottom-6 md:right-6 z-[60] flex flex-col gap-2.5 md:gap-3">
+    <div className="fixed bottom-5 right-6 sm:bottom-6 sm:right-8 md:bottom-6 md:right-8 z-[60] flex flex-col gap-2.5 md:gap-3">
       {/* Phone */}
       <a
         href="tel:0974516670"

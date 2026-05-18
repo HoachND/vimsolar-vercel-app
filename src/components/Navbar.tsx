@@ -33,10 +33,10 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+    <nav className={`fixed w-full inset-x-0 z-50 transition-all duration-300 ${
       scrolled || isBlog ? "bg-[#082f49]/95 backdrop-blur-md shadow-xl py-1" : "bg-transparent py-2"
     }`}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center min-w-0">
           {/* Logo - constrained strictly to prevent overflow */}
           <div className="flex-shrink-0">
@@ -72,24 +72,24 @@ export default function Navbar() {
           </div>
 
           {/* Mobile - flex-1 and justify-end ensures it takes remaining space without pushing off-screen */}
-          <div className="flex lg:hidden items-center justify-end gap-1.5 sm:gap-3 flex-1 min-w-0">
+          <div className="flex lg:hidden items-center justify-end gap-2 sm:gap-3 flex-1 min-w-0 pr-1">
             <button
               onClick={toggleLanguage}
-              className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 border border-white/10 text-amber-400 hover:bg-white/30 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 border border-white/10 text-amber-400 hover:bg-white/30 transition-colors shadow-sm"
               aria-label="Toggle language"
             >
               <Globe size={16} />
             </button>
             <a
               href="tel:0974516670"
-              className="flex-shrink-0 flex items-center gap-1 bg-amber-500 text-slate-900 font-bold px-2 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-sm whitespace-nowrap"
+              className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500 text-slate-900 font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap shadow-sm"
             >
               <Phone size={12} fill="currentColor" />
               <span>{t("nav_call")}</span>
             </a>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-md bg-white/20 border border-white/10 text-white hover:bg-white/30 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-white/20 border border-white/10 text-white hover:bg-white/30 transition-colors shadow-sm"
               aria-label="Toggle menu"
             >
               {isOpen ? <X size={22} /> : <Menu size={22} />}
