@@ -36,16 +36,17 @@ export default function Navbar() {
     <nav className={`fixed w-full z-50 transition-all duration-300 ${
       scrolled || isBlog ? "bg-[#082f49]/95 backdrop-blur-md shadow-xl py-1" : "bg-transparent py-2"
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          <div className="flex-shrink-0">
-            <a href="/" className="hover:opacity-80 transition-opacity">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center min-w-0">
+          {/* Logo - constrained on mobile to prevent overflow */}
+          <div className="flex-shrink min-w-0">
+            <a href="/" className="hover:opacity-80 transition-opacity block">
               <Image
                 src="/images/logo-vimsolar-nobg.png"
                 alt="VimSolar"
                 width={1200}
                 height={400}
-                className={`w-auto object-contain transition-all duration-300 ${
+                className={`object-contain transition-all duration-300 max-w-[120px] sm:max-w-[180px] md:max-w-none w-auto ${
                   scrolled ? "h-8 sm:h-12 md:h-14" : "h-10 sm:h-16 md:h-20"
                 }`}
                 priority
@@ -70,13 +71,29 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Mobile */}
-          <div className="lg:hidden flex items-center gap-1.5 sm:gap-3">
-            <button onClick={toggleLanguage} className="text-amber-400 p-1"><Globe size={18} /></button>
-            <a href="tel:0974516670" className="flex items-center gap-1 bg-amber-500 text-slate-900 font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm">
-              <Phone size={12} fill="currentColor" /><span>{t("nav_call")}</span>
+          {/* Mobile - flex-shrink-0 ensures icons never get pushed off-screen */}
+          <div className="lg:hidden flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-amber-400 hover:bg-white/20 transition-colors"
+              aria-label="Toggle language"
+            >
+              <Globe size={16} />
+            </button>
+            <a
+              href="tel:0974516670"
+              className="flex items-center gap-1 bg-amber-500 text-slate-900 font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap"
+            >
+              <Phone size={12} fill="currentColor" />
+              <span>{t("nav_call")}</span>
             </a>
-            <button onClick={() => setIsOpen(!isOpen)} className="text-white p-1">{isOpen ? <X size={24} /> : <Menu size={24} />}</button>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
       </div>
