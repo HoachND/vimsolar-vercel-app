@@ -26,7 +26,19 @@ export async function POST(req: NextRequest) {
   try {
     await initDb();
     const body = await req.json();
-    const slug = body.slug || body.titleEn?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || body.titleVi?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    
+    // Helper function to create clean Vietnamese slug
+    const createSlug = (str: string) => {
+      if (!str) return "";
+      return str.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric with hyphens
+        .replace(/(^-|-$)/g, ""); // Trim hyphens
+    };
+
+    // Prioritize Vietnamese title for SEO in Vietnam
+    const slug = body.slug || createSlug(body.titleVi) || createSlug(body.titleEn) || Date.now().toString();
     
     const newId = Date.now().toString();
     const tagsJson = JSON.stringify(body.tags || []);
