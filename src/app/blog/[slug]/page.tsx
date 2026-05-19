@@ -28,6 +28,46 @@ async function getPost(slug: string): Promise<BlogPost | undefined> {
   }
 }
 
+async function getRelatedPosts(category: string, currentId: string): Promise<BlogPost[]> {
+  try {
+    await initDb();
+    // Fetch up to 3 posts in the same category, excluding the current post
+    const res = await pool.query(
+      `SELECT id, slug, title_vi as "titleVi", title_en as "titleEn", excerpt_vi as "excerptVi", excerpt_en as "excerptEn", category, seo_image as "seoImage", author, created_at as "createdAt" 
+       FROM vimsolar_blogs 
+       WHERE published = true AND id != $1 AND category = $2 
+       ORDER BY created_at DESC 
+       LIMIT 3`,
+      [currentId, category]
+    );
+    
+    let related = res.rows;
+    
+    // If fewer than 3 related posts are found, fill up with the latest published posts
+    if (related.length < 3) {
+      const excludeIds = [currentId, ...related.map(r => r.id)];
+      const limit = 3 - related.length;
+      
+      const placeholders = excludeIds.map((_, i) => `$${i + 1}`).join(", ");
+      const fillRes = await pool.query(
+        `SELECT id, slug, title_vi as "titleVi", title_en as "titleEn", excerpt_vi as "excerptVi", excerpt_en as "excerptEn", category, seo_image as "seoImage", author, created_at as "createdAt" 
+         FROM vimsolar_blogs 
+         WHERE published = true AND id NOT IN (${placeholders}) 
+         ORDER BY created_at DESC 
+         LIMIT $${excludeIds.length + 1}`,
+        [...excludeIds, limit]
+      );
+      
+      related = [...related, ...fillRes.rows];
+    }
+    
+    return related;
+  } catch (err) {
+    console.error("Error fetching related posts", err);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.slug);
@@ -58,9 +98,11 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   const post = await getPost(resolvedParams.slug);
   if (!post) return <div className="pt-32 text-center text-red-500">Post not found for slug: {resolvedParams.slug}</div>;
 
+  const relatedPosts = await getRelatedPosts(post.category, post.id);
+
   return (
     <I18nProvider>
-      <BlogDetailContent post={post} />
+      <BlogDetailContent post={post} relatedPosts={relatedPosts} />
       
       {/* Schema Markup for Google - Expert level SEO */}
       <script
