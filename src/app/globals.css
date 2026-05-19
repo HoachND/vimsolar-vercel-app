@@ -159,3 +159,54 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
   border: 3px solid #0f172a;
 }
+
+/* Custom Prose Styling for SEO Blog Content */
+.prose {
+  color: #334155;
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.prose p {
+  margin-bottom: 1.5rem;
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.35;
+}
+
+.prose h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose li {
+  margin-bottom: 0.5rem;
+}
+
+.prose strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
