@@ -26,7 +26,7 @@ export default function Navbar() {
     { name: t("nav_solutions"), href: "/#solutions" },
     { name: t("nav_benefits"), href: "/#benefits" },
     { name: t("nav_projects"), href: "/#projects" },
-    { name: t("nav_process"), href: "/#process" },
+    { name: language === "vi" ? "Đối Tác" : "Partners", href: "/#partner-program" },
     { name: language === "vi" ? "Tính ROI" : "ROI Calc", href: "/tu-van" },
     { name: "Blog", href: "/blog" },
     { name: language === "vi" ? "Liên Hệ" : "Contact", href: "/#get-quote" },

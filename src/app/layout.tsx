@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot";
 import BackgroundMusic from "@/components/BackgroundMusic";
+import AffiliateTracker from "@/components/AffiliateTracker";
+
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://solar.vimgroup.vn"),
@@ -45,6 +47,7 @@ export default function RootLayout({
         {children}
         <Chatbot />
         <BackgroundMusic />
+        <AffiliateTracker />
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, FileText, Plus, LogOut, Moon, Sun, Save, Trash2, ChevronLeft, Globe, Search, Eye, EyeOff, Code, Terminal, Key, Users, UserPlus, Music, Shield, AlertCircle, CheckCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, LogOut, Moon, Sun, Save, Trash2, ChevronLeft, Globe, Search, Eye, EyeOff, Code, Terminal, Key, Users, UserPlus, Music, Shield, AlertCircle, CheckCircle, Handshake, Wallet, TrendingUp, BadgeCheck, XCircle, RefreshCw, DollarSign, Building2, MapPin, ClipboardList, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { BlogPost } from "@/lib/types";
 
@@ -11,8 +11,55 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  role: "admin" | "staff" | "member";
+  role: "admin" | "staff" | "member" | "partner";
   createdAt: string;
+  ref_code?: string;
+  balance?: number;
+  bank_name?: string;
+  bank_account?: string;
+  bank_holder?: string;
+}
+
+interface PartnerRegistration {
+  id: string;
+  user_id: string;
+  username: string;
+  business_name: string;
+  phone: string;
+  email: string;
+  city: string;
+  commune: string;
+  experience: string;
+  address: string;
+  status: string;
+  created_at: string;
+}
+
+interface Lead {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  referrer_id: string;
+  referrer_name: string;
+  status: string;
+  notes: string;
+  contract_value: number;
+  commission_amount: number;
+  created_at: string;
+}
+
+interface PayoutRequest {
+  id: string;
+  user_id: string;
+  user_name: string;
+  amount: number;
+  status: string;
+  reason: string;
+  bank_name: string;
+  bank_account: string;
+  bank_holder: string;
+  created_at: string;
 }
 
 export default function AdminDashboard() {
@@ -24,7 +71,7 @@ export default function AdminDashboard() {
   const [showLoginPass, setShowLoginPass] = useState(false);
   
   const [isDark, setIsDark] = useState(true);
-  const [activeTab, setActiveTab] = useState<"blog" | "api" | "staff" | "music" | "profile">("blog");
+  const [activeTab, setActiveTab] = useState<"blog" | "api" | "staff" | "music" | "profile" | "affiliate">("blog");
   
   // Blog State
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -39,6 +86,18 @@ export default function AdminDashboard() {
 
   // Music State
   const [playlist, setPlaylist] = useState<{ title: string; url: string }[]>([]);
+  // Affiliate Admin State
+  const [affiliateUsers, setAffiliateUsers] = useState<User[]>([]);
+  const [partnerRegs, setPartnerRegs] = useState<PartnerRegistration[]>([]);
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
+  const [affiliateSubTab, setAffiliateSubTab] = useState<"partners" | "payouts" | "leads" | "members">("partners");
+  const [affiliateLoading, setAffiliateLoading] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [leadEditForm, setLeadEditForm] = useState({ contractValue: "", status: "", notes: "" });
+  const [actionMsg, setActionMsg] = useState<{ text: string; type: string } | null>(null);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
   // Automation State
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -83,7 +142,9 @@ export default function AdminDashboard() {
       if (activeTab === "blog") fetchPosts();
       if (activeTab === "staff" && user.role === "admin") fetchStaff();
       if (activeTab === "music") fetchMusic();
+      if (activeTab === "affiliate" && (user.role === "admin" || user.role === "staff")) fetchAffiliateData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, activeTab]);
 
   // Auth Functions
@@ -223,6 +284,86 @@ export default function AdminDashboard() {
     }
   };
 
+  // Affiliate Admin Functions
+  const fetchAffiliateData = useCallback(async () => {
+    if (!user) return;
+    setAffiliateLoading(true);
+    try {
+      const res = await fetch(`/api/admin/affiliate?adminId=${user.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setAffiliateUsers(data.users || []);
+        setPartnerRegs(data.registrations || []);
+        setAllLeads(data.leads || []);
+        setPayoutRequests(data.payouts || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch affiliate data", err);
+    } finally {
+      setAffiliateLoading(false);
+    }
+  }, [user]);
+
+  const handleAffiliateAction = async (action: string, payload: Record<string, unknown>) => {
+    if (!user) return;
+    setActionMsg(null);
+    try {
+      const res = await fetch("/api/admin/affiliate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, adminId: user.id, ...payload })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMsg({ text: data.message, type: "success" });
+        fetchAffiliateData();
+      } else {
+        setActionMsg({ text: data.error || "Lỗi thao tác", type: "error" });
+      }
+    } catch {
+      setActionMsg({ text: "Lỗi kết nối server!", type: "error" });
+    }
+  };
+
+  const openLeadEditor = (lead: Lead) => {
+    setEditingLead(lead);
+    setLeadEditForm({
+      contractValue: lead.contract_value ? String(lead.contract_value) : "",
+      status: lead.status || "pending",
+      notes: lead.notes || ""
+    });
+  };
+
+  const submitLeadUpdate = async () => {
+    if (!editingLead) return;
+    await handleAffiliateAction("update-lead-contract", {
+      leadId: editingLead.id,
+      contractValue: leadEditForm.contractValue,
+      status: leadEditForm.status,
+      notes: leadEditForm.notes
+    });
+    setEditingLead(null);
+  };
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { color: string; label: string }> = {
+      pending: { color: "bg-amber-500/10 text-amber-400 border-amber-500/20", label: "Chờ duyệt" },
+      approved: { color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", label: "Đã duyệt" },
+      rejected: { color: "bg-red-500/10 text-red-400 border-red-500/20", label: "Từ chối" },
+      paid: { color: "bg-sky-500/10 text-sky-400 border-sky-500/20", label: "Đã thanh toán" },
+      survey: { color: "bg-blue-500/10 text-blue-400 border-blue-500/20", label: "Khảo sát" },
+      contract: { color: "bg-violet-500/10 text-violet-400 border-violet-500/20", label: "Ký hợp đồng" },
+      completed: { color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", label: "Hoàn thành" },
+      cancelled: { color: "bg-red-500/10 text-red-400 border-red-500/20", label: "Hủy" },
+    };
+    const s = map[status] || { color: "bg-slate-500/10 text-slate-400 border-slate-500/20", label: status };
+    return <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${s.color}`}>{s.label}</span>;
+  };
+
   const saveMusic = async () => {
     const validPlaylist = playlist.filter(p => p.url.trim() !== "");
     try {
@@ -336,6 +477,11 @@ export default function AdminDashboard() {
           {user.role === "admin" && (
             <button onClick={() => setActiveTab("staff")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "staff" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
               <Users size={20} /> Quản lý Nhân sự
+            </button>
+          )}
+          {(user.role === "admin" || user.role === "staff") && (
+            <button onClick={() => setActiveTab("affiliate")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "affiliate" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "hover:bg-white/5 text-slate-400"}`}>
+              <Handshake size={20} /> Đối tác & Affiliate
             </button>
           )}
           <button onClick={() => setActiveTab("music")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === "music" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "hover:bg-white/5 text-slate-400"}`}>
@@ -599,6 +745,417 @@ export default function AdminDashboard() {
                   Cập Nhật Mật Khẩu
                 </button>
               </form>
+            </motion.div>
+          )}
+
+          {/* TAB: AFFILIATE MANAGEMENT */}
+          {activeTab === "affiliate" && (user.role === "admin" || user.role === "staff") && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                  <h1 className="text-3xl font-black flex items-center gap-3">
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2.5 rounded-xl">
+                      <Handshake size={24} className="text-white" />
+                    </div>
+                    Đối Tác & Affiliate
+                  </h1>
+                  <p className="text-slate-400 text-sm mt-2">Quản lý đối tác lắp đặt, đại sứ xanh, hoa hồng & giải ngân</p>
+                </div>
+                <button onClick={fetchAffiliateData} disabled={affiliateLoading} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50">
+                  <RefreshCw size={16} className={affiliateLoading ? "animate-spin" : ""} /> Làm mới
+                </button>
+              </div>
+
+              {/* Action Message Toast */}
+              <AnimatePresence>
+                {actionMsg && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`mb-6 p-4 rounded-2xl flex items-center gap-3 text-sm font-medium border ${actionMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}
+                  >
+                    {actionMsg.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                    {actionMsg.text}
+                    <button onClick={() => setActionMsg(null)} className="ml-auto opacity-50 hover:opacity-100"><XCircle size={16} /></button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Overview Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {[
+                  { label: "Đại sứ xanh", value: affiliateUsers.filter(u => u.role === 'member').length, icon: <Users size={20} />, color: "from-emerald-500 to-teal-600" },
+                  { label: "Đối tác lắp đặt", value: affiliateUsers.filter(u => u.role === 'partner').length, icon: <Building2 size={20} />, color: "from-blue-500 to-indigo-600" },
+                  { label: "Chờ duyệt", value: partnerRegs.filter(r => r.status === 'pending').length, icon: <ClipboardList size={20} />, color: "from-amber-500 to-orange-600" },
+                  { label: "Chờ giải ngân", value: payoutRequests.filter(p => p.status === 'pending').length, icon: <Wallet size={20} />, color: "from-violet-500 to-purple-600" },
+                ].map((stat, i) => (
+                  <div key={i} className={`${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'} border rounded-2xl p-5 relative overflow-hidden`}>
+                    <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-full blur-2xl`} />
+                    <div className={`bg-gradient-to-br ${stat.color} p-2 rounded-lg w-fit text-white mb-3`}>{stat.icon}</div>
+                    <div className="text-3xl font-black">{stat.value}</div>
+                    <div className="text-xs text-slate-400 mt-1 font-medium">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sub-Tabs */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {[
+                  { key: "partners" as const, label: "Duyệt Đối Tác", icon: <BadgeCheck size={16} />, count: partnerRegs.filter(r => r.status === 'pending').length },
+                  { key: "payouts" as const, label: "Giải Ngân", icon: <CreditCard size={16} />, count: payoutRequests.filter(p => p.status === 'pending').length },
+                  { key: "leads" as const, label: "Leads & Dự Án", icon: <TrendingUp size={16} />, count: allLeads.length },
+                  { key: "members" as const, label: "Thành Viên", icon: <Users size={16} />, count: affiliateUsers.length },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setAffiliateSubTab(tab.key)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                      affiliateSubTab === tab.key
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-lg shadow-emerald-500/5'
+                        : `${isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`
+                    }`}
+                  >
+                    {tab.icon} {tab.label}
+                    {tab.count > 0 && (
+                      <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        affiliateSubTab === tab.key ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300'
+                      }`}>{tab.count}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {affiliateLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <RefreshCw size={32} className="animate-spin text-emerald-500" />
+                </div>
+              ) : (
+                <>
+                  {/* SUB-TAB: PARTNER REGISTRATIONS */}
+                  {affiliateSubTab === "partners" && (
+                    <div className={`${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'} border rounded-2xl overflow-hidden`}>
+                      <div className="p-5 border-b border-white/5 flex items-center gap-3">
+                        <BadgeCheck size={20} className="text-amber-500" />
+                        <h2 className="font-bold text-lg">Đơn Đăng Ký Đối Tác Lắp Đặt</h2>
+                        <span className="bg-amber-500/10 text-amber-500 text-xs font-black px-2 py-0.5 rounded-full">{partnerRegs.length} đơn</span>
+                      </div>
+                      {partnerRegs.length === 0 ? (
+                        <div className="p-12 text-center text-slate-500">
+                          <Building2 size={40} className="mx-auto mb-3 opacity-30" />
+                          <p className="font-medium">Chưa có đơn đăng ký nào</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-white/5">
+                          {partnerRegs.map(reg => (
+                            <div key={reg.id} className="p-5 hover:bg-white/[0.02] transition-colors">
+                              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="font-bold text-base truncate">{reg.business_name}</h3>
+                                    {getStatusBadge(reg.status)}
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-400">
+                                    <span className="flex items-center gap-1.5"><Users size={12} /> {reg.username || 'N/A'}</span>
+                                    <span className="flex items-center gap-1.5"><MapPin size={12} /> {reg.city}, {reg.commune}</span>
+                                    <span className="flex items-center gap-1.5"><Building2 size={12} /> KN: {reg.experience}</span>
+                                  </div>
+                                  <div className="text-xs text-slate-500 mt-1">📧 {reg.email} · 📱 {reg.phone}</div>
+                                  {reg.address && <div className="text-xs text-slate-500 mt-1">📍 {reg.address}</div>}
+                                </div>
+                                {reg.status === 'pending' && (
+                                  <div className="flex gap-2 flex-shrink-0">
+                                    <button
+                                      onClick={() => handleAffiliateAction('approve-partner', { registrationId: reg.id, userId: reg.user_id })}
+                                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-lg shadow-emerald-600/20"
+                                    >
+                                      <CheckCircle size={14} /> Duyệt
+                                    </button>
+                                    <button
+                                      onClick={() => handleAffiliateAction('reject-partner', { registrationId: reg.id })}
+                                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-400 font-bold text-xs border border-red-500/20 transition-all"
+                                    >
+                                      <XCircle size={14} /> Từ chối
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SUB-TAB: PAYOUT REQUESTS */}
+                  {affiliateSubTab === "payouts" && (
+                    <div className={`${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'} border rounded-2xl overflow-hidden`}>
+                      <div className="p-5 border-b border-white/5 flex items-center gap-3">
+                        <CreditCard size={20} className="text-violet-500" />
+                        <h2 className="font-bold text-lg">Yêu Cầu Giải Ngân</h2>
+                        <span className="bg-violet-500/10 text-violet-400 text-xs font-black px-2 py-0.5 rounded-full">{payoutRequests.length} yêu cầu</span>
+                      </div>
+                      {payoutRequests.length === 0 ? (
+                        <div className="p-12 text-center text-slate-500">
+                          <Wallet size={40} className="mx-auto mb-3 opacity-30" />
+                          <p className="font-medium">Chưa có yêu cầu giải ngân nào</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm">
+                            <thead className={`${isDark ? 'bg-slate-800' : 'bg-gray-50'} text-slate-400 uppercase text-[10px] tracking-wider`}>
+                              <tr>
+                                <th className="px-5 py-3.5">Người yêu cầu</th>
+                                <th className="px-5 py-3.5">Ngân hàng</th>
+                                <th className="px-5 py-3.5">Số tiền</th>
+                                <th className="px-5 py-3.5">Trạng thái</th>
+                                <th className="px-5 py-3.5">Ngày tạo</th>
+                                <th className="px-5 py-3.5 text-right">Thao tác</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {payoutRequests.map(p => (
+                                <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-5 py-4">
+                                    <div className="font-bold">{p.user_name}</div>
+                                    <div className="text-xs text-slate-500">{p.reason}</div>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <div className="text-xs font-medium">{p.bank_name || '---'}</div>
+                                    <div className="text-xs text-slate-500">{p.bank_holder} · {p.bank_account}</div>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <span className="font-black text-red-400">{formatCurrency(Math.abs(p.amount))}</span>
+                                  </td>
+                                  <td className="px-5 py-4">{getStatusBadge(p.status)}</td>
+                                  <td className="px-5 py-4 text-xs text-slate-500">{new Date(p.created_at).toLocaleDateString('vi-VN')}</td>
+                                  <td className="px-5 py-4 text-right">
+                                    {p.status === 'pending' ? (
+                                      <div className="flex gap-2 justify-end">
+                                        <button
+                                          onClick={() => handleAffiliateAction('approve-payout', { payoutId: p.id })}
+                                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all"
+                                        >
+                                          ✅ Thanh toán
+                                        </button>
+                                        <button
+                                          onClick={() => handleAffiliateAction('reject-payout', { payoutId: p.id })}
+                                          className="px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-400 font-bold text-xs border border-red-500/20 transition-all"
+                                        >
+                                          ❌ Từ chối
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-slate-500">Đã xử lý</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SUB-TAB: LEADS & PROJECTS */}
+                  {affiliateSubTab === "leads" && (
+                    <div className={`${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'} border rounded-2xl overflow-hidden`}>
+                      <div className="p-5 border-b border-white/5 flex items-center gap-3">
+                        <TrendingUp size={20} className="text-sky-500" />
+                        <h2 className="font-bold text-lg">Quản Lý Leads & Hoa Hồng</h2>
+                        <span className="bg-sky-500/10 text-sky-400 text-xs font-black px-2 py-0.5 rounded-full">{allLeads.length} leads</span>
+                      </div>
+                      {allLeads.length === 0 ? (
+                        <div className="p-12 text-center text-slate-500">
+                          <TrendingUp size={40} className="mx-auto mb-3 opacity-30" />
+                          <p className="font-medium">Chưa có leads nào từ hệ thống affiliate</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-white/5">
+                          {allLeads.map(lead => (
+                            <div key={lead.id} className="hover:bg-white/[0.02] transition-colors">
+                              <div className="p-5">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 mb-1.5">
+                                      <h3 className="font-bold truncate">{lead.name}</h3>
+                                      {getStatusBadge(lead.status)}
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-400">
+                                      <span>📱 {lead.phone} · 📧 {lead.email || 'N/A'}</span>
+                                      <span>👤 Giới thiệu bởi: <strong className="text-emerald-400">{lead.referrer_name || 'Không có'}</strong></span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-shrink-0">
+                                    {lead.contract_value > 0 && (
+                                      <div className="text-right">
+                                        <div className="text-xs text-slate-400">Giá trị HĐ</div>
+                                        <div className="font-black text-amber-400">{formatCurrency(lead.contract_value)}</div>
+                                        <div className="text-[10px] text-emerald-400">HH: {formatCurrency(lead.commission_amount)}</div>
+                                      </div>
+                                    )}
+                                    <button
+                                      onClick={() => {
+                                        if (expandedRow === lead.id) { setExpandedRow(null); } else { setExpandedRow(lead.id); openLeadEditor(lead); }
+                                      }}
+                                      className="p-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 transition-all"
+                                    >
+                                      {expandedRow === lead.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Inline Lead Editor */}
+                              <AnimatePresence>
+                                {expandedRow === lead.id && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <div className={`px-5 pb-5 pt-2 ${isDark ? 'bg-slate-800/50' : 'bg-gray-50'} border-t border-white/5`}>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                          <label className="text-xs font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Trạng thái</label>
+                                          <select
+                                            value={leadEditForm.status}
+                                            onChange={e => setLeadEditForm({ ...leadEditForm, status: e.target.value })}
+                                            className={`w-full ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'} border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500`}
+                                          >
+                                            <option value="pending">Chờ xử lý</option>
+                                            <option value="survey">Khảo sát</option>
+                                            <option value="contract">Ký hợp đồng</option>
+                                            <option value="completed">Hoàn thành</option>
+                                            <option value="cancelled">Hủy</option>
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <label className="text-xs font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Giá trị HĐ (VNĐ)</label>
+                                          <input
+                                            type="number"
+                                            value={leadEditForm.contractValue}
+                                            onChange={e => setLeadEditForm({ ...leadEditForm, contractValue: e.target.value })}
+                                            placeholder="VD: 200000000"
+                                            className={`w-full ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'} border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500`}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-xs font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Ghi chú</label>
+                                          <input
+                                            type="text"
+                                            value={leadEditForm.notes}
+                                            onChange={e => setLeadEditForm({ ...leadEditForm, notes: e.target.value })}
+                                            placeholder="Ghi chú..."
+                                            className={`w-full ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'} border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500`}
+                                          />
+                                        </div>
+                                      </div>
+                                      {leadEditForm.contractValue && parseFloat(leadEditForm.contractValue) > 0 && (
+                                        <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-xs text-emerald-400">
+                                          <DollarSign size={14} />
+                                          Hoa hồng 2%: <strong>{formatCurrency(parseFloat(leadEditForm.contractValue) * 0.02)}</strong>
+                                          {lead.referrer_name && <span>→ cho <strong>{lead.referrer_name}</strong></span>}
+                                        </div>
+                                      )}
+                                      <div className="flex gap-3 mt-4">
+                                        <button
+                                          onClick={submitLeadUpdate}
+                                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/20"
+                                        >
+                                          <Save size={14} /> Cập nhật & Tính hoa hồng
+                                        </button>
+                                        <button
+                                          onClick={() => setExpandedRow(null)}
+                                          className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-medium text-sm transition-all"
+                                        >
+                                          Đóng
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SUB-TAB: MEMBER DIRECTORY */}
+                  {affiliateSubTab === "members" && (
+                    <div className={`${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'} border rounded-2xl overflow-hidden`}>
+                      <div className="p-5 border-b border-white/5 flex items-center gap-3">
+                        <Users size={20} className="text-emerald-500" />
+                        <h2 className="font-bold text-lg">Danh Sách Thành Viên</h2>
+                        <span className="bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-0.5 rounded-full">{affiliateUsers.length} thành viên</span>
+                      </div>
+                      {affiliateUsers.length === 0 ? (
+                        <div className="p-12 text-center text-slate-500">
+                          <Users size={40} className="mx-auto mb-3 opacity-30" />
+                          <p className="font-medium">Chưa có thành viên affiliate/đối tác nào</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm">
+                            <thead className={`${isDark ? 'bg-slate-800' : 'bg-gray-50'} text-slate-400 uppercase text-[10px] tracking-wider`}>
+                              <tr>
+                                <th className="px-5 py-3.5">Thành viên</th>
+                                <th className="px-5 py-3.5">Vai trò</th>
+                                <th className="px-5 py-3.5">Mã giới thiệu</th>
+                                <th className="px-5 py-3.5">Số dư</th>
+                                <th className="px-5 py-3.5">Ngân hàng</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {affiliateUsers.map(u => (
+                                <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-5 py-4">
+                                    <div className="font-bold">{u.name}</div>
+                                    <div className="text-xs text-slate-500">{u.email || u.username}</div>
+                                    <div className="text-xs text-slate-600">{u.phone || ''}</div>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                                      u.role === 'partner' 
+                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                    }`}>
+                                      {u.role === 'partner' ? '🔧 Đối tác' : '🌿 Đại sứ'}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    {u.ref_code ? (
+                                      <code className={`px-2 py-1 rounded text-xs font-mono ${isDark ? 'bg-slate-800 text-emerald-400' : 'bg-gray-100 text-emerald-600'}`}>
+                                        {u.ref_code}
+                                      </code>
+                                    ) : <span className="text-slate-600 text-xs">—</span>}
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <span className={`font-black ${(u.balance || 0) > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                      {formatCurrency(u.balance || 0)}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    {u.bank_name ? (
+                                      <div>
+                                        <div className="text-xs font-medium">{u.bank_name}</div>
+                                        <div className="text-[10px] text-slate-500">{u.bank_holder} · {u.bank_account}</div>
+                                      </div>
+                                    ) : <span className="text-slate-600 text-xs">Chưa cập nhật</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </motion.div>
           )}
 

@@ -18,7 +18,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#0a0f1a] text-gray-400 pt-20 pb-10 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
           {/* Col 1 - Brand */}
           <div className="space-y-5 lg:col-span-1">
             <img
@@ -41,7 +41,7 @@ export default function Footer() {
                 { name: t("nav_benefits"), href: "/#benefits" },
                 { name: t("nav_projects"), href: "/#projects" },
                 { name: t("nav_process"), href: "/#process" },
-                { name: t("nav_quote"), href: "/#get-quote" },
+                { name: isEn ? "FAQ" : "Câu hỏi thường gặp", href: "/#faq" },
               ].map((link) => (
                 <li key={link.name}>
                   <a
@@ -55,7 +55,29 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3 - Contact */}
+          {/* Col 3 - Partners */}
+          <div className="space-y-5">
+            <h4 className="text-lg font-bold text-white">{isEn ? "Partnership" : "Đối Tác Đồng Hành"}</h4>
+            <ul className="space-y-3 text-sm">
+              {[
+                { name: isEn ? "Installation Partner" : "Đối tác lắp đặt", href: "/#partner-program" },
+                { name: isEn ? "Green Ambassador" : "Đại sứ xanh", href: "/#partner-program" },
+                { name: isEn ? "Strategic Partners" : "Đối tác chiến lược", href: "/#strategic-partners" },
+                { name: isEn ? "Horus Authorized" : "Ủy quyền từ Horus", href: "/#partners" },
+              ].map((link) => (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Col 4 - Contact */}
           <div className="space-y-5">
             <h4 className="text-lg font-bold text-white">{isEn ? "Contact" : "Liên Hệ"}</h4>
             <ul className="space-y-4 text-sm">
@@ -85,23 +107,11 @@ export default function Footer() {
                   solar.vimgroup@gmail.com
                 </a>
               </li>
-              <li className="flex items-center gap-3">
-                <FacebookIcon className="text-amber-500 flex-shrink-0" size={18} />
-                <a href="https://www.facebook.com/vimsolar" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
-                  fb.com/vimsolar
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Globe className="text-amber-500 flex-shrink-0" size={18} />
-                <a href="https://www.vimgroup.vn/" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
-                  vimgroup.vn
-                </a>
-              </li>
             </ul>
           </div>
 
-          {/* Col 4 - Map */}
-          <div className="h-[250px] rounded-xl overflow-hidden shadow-lg border border-slate-700 relative">
+          {/* Col 5 - Map */}
+          <div className="h-[200px] rounded-xl overflow-hidden shadow-lg border border-slate-700 relative">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.633596706927!2d105.9329718!3d20.9471373!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135af268f705e4b%3A0xe54191d84e2a6d7f!2sEcopark!5e0!3m2!1svi!2s!4v1713859000000!5m2!1svi!2s"
               width="100%"

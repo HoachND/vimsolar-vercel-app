@@ -85,6 +85,52 @@ export default function BlogDetailContent({ post, relatedPosts }: { post: BlogPo
             </div>
           </div>
 
+          {/* Blog FAQ Section */}
+          <div className="mt-20 pt-12 border-t border-gray-100">
+            <h3 className="text-2xl font-black text-slate-900 mb-8">
+              {isEn ? "Frequently Asked Questions" : "Câu hỏi thường gặp"}
+            </h3>
+            <div className="space-y-4">
+              {[
+                {
+                  q: isEn ? "What is the optimal solar system capacity to install?" : "Công suất tối ưu nên lắp đặt là bao nhiêu?",
+                  a: isEn
+                    ? "We calculate this based on your daytime consumption and rooftop area. The higher your daytime electricity usage, the more efficient the system's ROI."
+                    : "Chúng tôi tính toán dựa trên nhu cầu tiêu thụ điện ban ngày và diện tích mái. Tỷ lệ điện ban ngày dùng càng nhiều thì hiệu quả hoàn vốn hệ thống càng cao.",
+                },
+                {
+                  q: isEn ? "How long does the solar panel output last?" : "Hiệu suất và tuổi thọ tấm pin kéo dài bao lâu?",
+                  a: isEn
+                    ? "LESSO Solar panels guarantee that after 10 years, output remains above 92%, and above 87.4% after 30 years. Annual degradation is less than 0.4%."
+                    : "Tấm pin LESSO Solar cam kết bảo hành hiệu suất: sau 10 năm công suất còn trên 92%, và sau 30 năm còn trên 87.4%. Mức suy giảm hàng năm cực thấp (<0.4%).",
+                },
+                {
+                  q: isEn ? "Is the system safe during heavy storms and lightning?" : "Hệ thống có an toàn khi xảy ra mưa bão và sét đánh không?",
+                  a: isEn
+                    ? "Yes. The system includes Surge Protective Devices (SPD) and DC leakage protection. The premium anodized aluminum frame withstands Category 12 storms, and the tempered glass resists 25mm hailstones."
+                    : "Có. Hệ thống tích hợp thiết bị chống sét lan truyền (SPD) và chống rò điện DC. Khung nhôm anod cao cấp chịu được bão cấp 12+, kính cường lực chịu lực va đập của mưa đá 25mm.",
+                },
+              ].map((faq, index) => (
+                <details 
+                  key={index}
+                  className="group border border-gray-100 rounded-2xl bg-slate-50 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer hover:border-amber-300 transition-colors"
+                >
+                  <summary className="flex items-center justify-between gap-4 font-extrabold text-slate-800 text-sm sm:text-base">
+                    <span>{faq.q}</span>
+                    <span className="transition duration-300 group-open:-rotate-180 text-amber-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <p className="mt-4 text-xs sm:text-sm text-gray-500 leading-relaxed border-t border-gray-200/60 pt-4">
+                    {faq.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+
           {/* Related Articles Section */}
           {relatedPosts && relatedPosts.length > 0 && (
             <div className="mt-20 pt-12 border-t border-gray-100">

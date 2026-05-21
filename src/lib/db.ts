@@ -17,6 +17,7 @@ export async function initDb() {
   
   const client = await pool.connect();
   try {
+    // 1. Core tables
     await client.query(`
       CREATE TABLE IF NOT EXISTS vimsolar_users (
         id VARCHAR(50) PRIMARY KEY,
@@ -64,6 +65,71 @@ export async function initDb() {
         published BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 2. Add columns for affiliate program in vimsolar_users
+    await client.query(`
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS ref_code VARCHAR(50);
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS referred_by VARCHAR(50);
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS balance NUMERIC(15, 2) DEFAULT 0;
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100);
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS bank_account VARCHAR(50);
+      ALTER TABLE vimsolar_users ADD COLUMN IF NOT EXISTS bank_holder VARCHAR(150);
+    `);
+
+    // Ensure ref_code is unique if not null, but keeping simple constraint handling
+    try {
+      await client.query(`ALTER TABLE vimsolar_users ADD CONSTRAINT vimsolar_users_ref_code_key UNIQUE (ref_code)`);
+    } catch (e) {
+      // Constraint might already exist, ignore error
+    }
+
+    // 3. Create clicks, leads, earnings, partner_registrations tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vimsolar_clicks (
+        id SERIAL PRIMARY KEY,
+        referrer_id VARCHAR(50) REFERENCES vimsolar_users(id) ON DELETE CASCADE,
+        ip_address VARCHAR(50),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS vimsolar_leads (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50) NOT NULL,
+        referrer_id VARCHAR(50) REFERENCES vimsolar_users(id) ON DELETE SET NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        notes TEXT,
+        contract_value NUMERIC(15, 2) DEFAULT 0,
+        commission_amount NUMERIC(15, 2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS vimsolar_earnings (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(50) REFERENCES vimsolar_users(id) ON DELETE CASCADE,
+        amount NUMERIC(15, 2) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        reason TEXT,
+        lead_id INT REFERENCES vimsolar_leads(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS vimsolar_partner_registrations (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(50) REFERENCES vimsolar_users(id) ON DELETE SET NULL,
+        business_name VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        email VARCHAR(255),
+        city VARCHAR(100) NOT NULL,
+        commune VARCHAR(100),
+        experience VARCHAR(255),
+        address TEXT,
+        status VARCHAR(20) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
