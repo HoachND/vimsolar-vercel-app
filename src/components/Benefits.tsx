@@ -26,32 +26,32 @@ export default function Benefits() {
     { icon: Sun, titleKey: "ben_6_t", descKey: "ben_6_d", color: "orange", stat: "30", statKey: "ben_6_s" },
   ];
   return (
-    <section id="benefits" className="py-24 bg-gradient-to-b from-white to-slate-50">
+    <section id="benefits" className="py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
-          <span className="text-amber-600 font-extrabold tracking-[4px] text-xs uppercase">{t("ben_badge")}</span>
-          <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900">{t("ben_title")}</h2>
-          <p className="text-gray-500 mt-4 max-w-2xl mx-auto text-lg">{t("ben_desc")}</p>
+          <span className="text-amber-600 dark:text-amber-500 font-extrabold tracking-[4px] text-xs uppercase">{t("ben_badge")}</span>
+          <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900 dark:text-white">{t("ben_title")}</h2>
+          <p className="text-slate-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto text-lg">{t("ben_desc")}</p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {benefits.map((b, i) => {
             const c = colorMap[b.color];
             return (
               <motion.div key={b.titleKey} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group bg-white rounded-2xl p-8 border border-gray-100 hover:border-amber-200 bento-hover shadow-sm hover:shadow-xl">
+                className="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-gray-100 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-500/50 bento-hover shadow-sm dark:shadow-none hover:shadow-xl transition-all">
                 <div className={`w-14 h-14 rounded-xl ${c.bg} flex items-center justify-center mb-5`}><b.icon className={c.text} size={28} /></div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{t(b.titleKey)}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-5">{t(b.descKey)}</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{t(b.titleKey)}</h3>
+                <p className="text-slate-500 dark:text-gray-400 text-sm leading-relaxed mb-5">{t(b.descKey)}</p>
                 <div className={`rounded-xl ${c.bg} border ${c.border} p-4`}>
                   <div className={`text-2xl font-black ${c.text}`}>{b.stat}</div>
-                  <div className="text-xs text-gray-500 mt-1">{t(b.statKey)}</div>
+                  <div className="text-xs text-slate-500 dark:text-gray-400 mt-1">{t(b.statKey)}</div>
                 </div>
               </motion.div>
             );
           })}
         </div>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-16">
-          <p className="text-gray-500 mb-4 text-lg">{t("ben_cta_text")}</p>
+          <p className="text-slate-600 dark:text-gray-400 mb-4 text-lg">{t("ben_cta_text")}</p>
           <a href="#get-quote" className="inline-block px-10 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 font-extrabold rounded-full hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all transform hover:scale-105 text-lg">{t("ben_cta")}</a>
         </motion.div>
       </div>

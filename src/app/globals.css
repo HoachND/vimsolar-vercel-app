@@ -22,6 +22,9 @@ nextjs-portal {
 
 /* Solar themed animated gradient background */
 .solar-gradient-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 100%);
+}
+.dark .solar-gradient-bg {
   background: linear-gradient(135deg, #0C4A6E 0%, #0f172a 40%, #1e293b 100%);
 }
 

@@ -1,5 +1,6 @@
-import GenericPage from '@/components/GenericDashboardPage';
+"use client";
+import GenericPage from "@/components/GenericDashboardPage";
 
 export default function Page() {
-  return <GenericPage title='tu-van' />;
+  return <GenericPage title="Quản lý Tư vấn/ Khảo sát" />;
 }

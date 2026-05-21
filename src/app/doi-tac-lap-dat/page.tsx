@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { I18nProvider, useI18n } from "@/context/I18nContext";
+import { signIn } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Widgets from "@/components/Widgets";
-import { Shield, Briefcase, Award, CheckCircle2, ChevronRight, MapPin, Building, Phone, Mail, User, Info, Building2 } from "lucide-react";
+import { Shield, Briefcase, Award, CheckCircle2, ChevronRight, MapPin, Building, Phone, Mail, User, Info, Building2, LogIn, UserPlus, Lock, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const VIETNAM_PROVINCES = [
   "TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Bình Dương", "Đồng Nai", 
@@ -16,7 +18,9 @@ const VIETNAM_PROVINCES = [
 function PartnerPageContent() {
   const { language } = useI18n();
   const isEn = language === "en";
+  const router = useRouter();
 
+  const [isRegister, setIsRegister] = useState(true);
   const [formData, setFormData] = useState({
     businessName: "",
     name: "",
@@ -34,6 +38,10 @@ function PartnerPageContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,6 +51,14 @@ function PartnerPageContent() {
     if (step === 1) {
       if (!formData.businessName || !formData.name || !formData.phone || !formData.email) {
         setError(isEn ? "Please fill in all representative & business fields!" : "Vui lòng điền đầy đủ thông tin doanh nghiệp và liên hệ!");
+        return;
+      }
+      if (!/^[0-9]{10}$/.test(formData.phone)) {
+        setError(isEn ? "Phone number must be exactly 10 digits!" : "Số điện thoại phải bao gồm đúng 10 chữ số!");
+        return;
+      }
+      if (!formData.email.includes("@")) {
+        setError(isEn ? "Invalid email (missing @)!" : "Email không hợp lệ (thiếu @)!");
         return;
       }
       setError("");
@@ -79,6 +95,74 @@ function PartnerPageContent() {
       setSuccess(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error connecting to server";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setError(isEn ? "Please enter username and password!" : "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        username: formData.username.trim(),
+        password: formData.password,
+      });
+      if (res?.error) throw new Error(res.error);
+      router.push("/thong-ke/tong-quan");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi kết nối server!";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim() || !resetEmail.includes("@")) {
+      setError(isEn ? "Please enter a valid email!" : "Vui lòng nhập email hợp lệ!");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "forgot-password", email: resetEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Không tìm thấy email!");
+      setResetSuccess(true);
+      setTimeout(() => {
+        setIsForgotPassword(false);
+        setResetSuccess(false);
+        setResetEmail("");
+      }, 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi kết nối server!";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      document.cookie = "googleAuthRole=partner; path=/; max-age=300";
+      await signIn("google", { callbackUrl: "/thong-ke/tong-quan" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi xác thực Google!";
       setError(msg);
     } finally {
       setLoading(false);
@@ -161,11 +245,31 @@ function PartnerPageContent() {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
                 
                 <h2 className="text-2xl font-black text-slate-100 mb-2">
-                  {isEn ? "Partner Registration" : "Đăng Ký Đối Tác Lắp Đặt"}
+                  {isRegister 
+                    ? (isEn ? "Partner Registration" : "Đăng Ký Đối Tác Lắp Đặt") 
+                    : (isEn ? "Partner Login" : "Đăng Nhập Đối Tác")}
                 </h2>
-                <p className="text-gray-400 text-sm mb-6">
-                  {isEn ? "Step " : "Bước "}{step}/2: {step === 1 ? (isEn ? "Business Details" : "Thông tin doanh nghiệp") : (isEn ? "Portal Setup & Address" : "Địa điểm & Tài khoản quản trị")}
-                </p>
+                {isRegister && (
+                  <p className="text-gray-400 text-sm mb-4">
+                    {isEn ? "Step " : "Bước "}{step}/2: {step === 1 ? (isEn ? "Business Details" : "Thông tin doanh nghiệp") : (isEn ? "Portal Setup & Address" : "Địa điểm & Tài khoản quản trị")}
+                  </p>
+                )}
+
+                {/* Tab selector */}
+                <div className="flex bg-slate-950 p-1.5 rounded-2xl mb-6">
+                  <button 
+                    onClick={() => { setIsRegister(true); setError(""); setIsForgotPassword(false); }}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${isRegister ? "bg-amber-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
+                  >
+                    <UserPlus className="w-4 h-4" /> {isEn ? "Register" : "Đăng Ký"}
+                  </button>
+                  <button 
+                    onClick={() => { setIsRegister(false); setError(""); }}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${!isRegister ? "bg-amber-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
+                  >
+                    <LogIn className="w-4 h-4" /> {isEn ? "Login" : "Đăng Nhập"}
+                  </button>
+                </div>
 
                 {error && (
                   <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">
@@ -185,11 +289,11 @@ function PartnerPageContent() {
                     </h3>
                     <p className="text-gray-400 text-sm leading-relaxed">
                       {isEn 
-                        ? "Thank you for applying. Our regional sales team will review your business credentials and contact you within 24 hours to active your Partner Portal account."
-                        : "Cảm ơn quý đối tác đã nộp hồ sơ. Đội ngũ phát triển thị trường VimSolar sẽ thẩm định năng lực và liên hệ bàn giao tài khoản Cổng Đối Tác trong vòng 24h làm việc."}
+                        ? "Thank you for applying. Our regional sales team will review your business credentials and contact you within 24 hours."
+                        : "Cảm ơn quý đối tác đã nộp hồ sơ. Đội ngũ VimSolar sẽ thẩm định và liên hệ bàn giao tài khoản trong vòng 24h."}
                     </p>
                   </motion.div>
-                ) : (
+                ) : isRegister ? (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <AnimatePresence mode="wait">
                       {step === 1 ? (
@@ -345,15 +449,24 @@ function PartnerPageContent() {
                               </div>
                               <div>
                                 <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
-                                <input 
-                                  type="password" 
-                                  name="password" 
-                                  value={formData.password} 
-                                  onChange={handleChange} 
-                                  placeholder="••••••••"
-                                  className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-500 transition-colors"
-                                  required
-                                />
+                                <div className="relative">
+                                  <input 
+                                    type={showPassword ? "text" : "password"} 
+                                    name="password" 
+                                    value={formData.password} 
+                                    onChange={handleChange} 
+                                    placeholder="••••••••"
+                                    className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                                  >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -369,15 +482,151 @@ function PartnerPageContent() {
                             <button
                               type="submit"
                               disabled={loading}
-                              className="w-2/3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                              className="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
                             >
-                              {loading ? (isEn ? "Submitting..." : "Đang Gửi...") : (isEn ? "Register Now ☀️" : "Hoàn Tất Đăng Ký ☀️")}
+                              {loading ? (isEn ? "Processing..." : "Đang xử lý...") : (isEn ? "Complete Registration" : "Hoàn Tất Đăng Ký")} <CheckCircle2 className="w-4 h-4" />
                             </button>
                           </div>
+
+                          <div className="relative flex items-center py-2 mt-2">
+                            <div className="flex-grow border-t border-white/10"></div>
+                            <span className="flex-shrink-0 mx-4 text-xs text-gray-500">HOẶC</span>
+                            <div className="flex-grow border-t border-white/10"></div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleGoogleAuth}
+                            disabled={loading}
+                            className="w-full bg-white text-slate-900 font-bold py-3 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors shadow-sm"
+                          >
+                            <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            Đăng ký / Đăng nhập với Google
+                          </button>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </form>
+                ) : (
+                  /* LOGIN FORM */
+                  isForgotPassword ? (
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      {resetSuccess && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-4 rounded-xl mb-4 font-semibold text-center">
+                          ✅ {isEn ? "Password reset email sent!" : "Đã gửi hướng dẫn khôi phục mật khẩu vào email của bạn!"}
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Your Email" : "Email của bạn"}</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input 
+                            type="email" 
+                            value={resetEmail} 
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            placeholder="name@gmail.com"
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-amber-500 text-white"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4"
+                      >
+                        {loading ? (isEn ? "Processing..." : "Đang xử lý...") : (isEn ? "Send Request" : "Gửi Yêu Cầu")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsForgotPassword(false); setError(""); }}
+                        className="w-full font-bold py-3 text-sm text-gray-400 hover:text-white transition-colors"
+                      >
+                        {isEn ? "Back to login" : "Quay lại đăng nhập"}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Username / Email *" : "Tên đăng nhập / Email *"}</label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input 
+                            type="text" 
+                            name="username" 
+                            value={formData.username} 
+                            onChange={handleChange}
+                            placeholder="username123"
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-amber-500 text-white"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
+                          <button type="button" onClick={() => { setIsForgotPassword(true); setError(""); }} className="text-xs text-amber-400 hover:text-amber-300 font-semibold">
+                            {isEn ? "Forgot password?" : "Quên mật khẩu?"}
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input 
+                            type={showPassword ? "text" : "password"} 
+                            name="password" 
+                            value={formData.password} 
+                            onChange={handleChange}
+                            placeholder="••••••••"
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 pl-10 pr-10 text-sm focus:outline-none focus:border-amber-500 text-white"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 mt-4"
+                      >
+                        {loading ? (isEn ? "Authenticating..." : "Đang xác thực...") : (isEn ? "Access Partner Portal" : "Vào Cổng Đối Tác")}
+                        <LogIn className="w-4 h-4" />
+                      </button>
+
+                      <div className="relative flex items-center py-2 mt-2">
+                        <div className="flex-grow border-t border-white/10"></div>
+                        <span className="flex-shrink-0 mx-4 text-xs text-gray-500">{isEn ? "OR" : "HOẶC"}</span>
+                        <div className="flex-grow border-t border-white/10"></div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        disabled={loading}
+                        className="w-full bg-white text-slate-900 font-bold py-3 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors shadow-sm"
+                      >
+                        <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        {isEn ? "Sign in with Google" : "Đăng nhập với Google"}
+                      </button>
+                    </form>
+                  )
                 )}
               </div>
             </div>

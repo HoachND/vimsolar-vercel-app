@@ -10,7 +10,7 @@ export default function About() {
   const { t, language } = useI18n();
   const isEn = language === "en";
   return (
-    <section id="about" className="py-24 bg-white">
+    <section id="about" className="py-24 bg-white dark:bg-slate-950 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left - Image + Badge */}
@@ -52,16 +52,16 @@ export default function About() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            <span className="text-amber-600 font-extrabold tracking-[4px] text-xs uppercase">
+            <span className="text-amber-600 dark:text-amber-500 font-extrabold tracking-[4px] text-xs uppercase">
               {t("about_badge")}
             </span>
-            <h2 className="text-3xl md:text-4xl font-black mt-4 mb-6 text-slate-900">
+            <h2 className="text-3xl md:text-4xl font-black mt-4 mb-6 text-slate-900 dark:text-white">
               {isEn ? "Trusted " : "Đơn Vị Thi Công "}
-              <span className="text-[#0C4A6E]">{isEn ? "Solar" : "Điện Mặt Trời"}</span>{" "}
-              <span className="text-amber-600">{isEn ? "Installer" : "Uy Tín"}</span>
+              <span className="text-[#0C4A6E] dark:text-amber-400">{isEn ? "Solar" : "Điện Mặt Trời"}</span>{" "}
+              <span className="text-amber-600 dark:text-amber-500">{isEn ? "Installer" : "Uy Tín"}</span>
             </h2>
             <p 
-              className="text-gray-600 leading-relaxed mb-8 text-lg" 
+              className="text-slate-600 dark:text-gray-300 leading-relaxed mb-8 text-lg" 
               dangerouslySetInnerHTML={{ 
                 __html: isEn 
                   ? "<strong>VimSolar</strong> is a subsidiary of <strong>VIMGROUP</strong> Investment JSC — specializing in consulting, designing and constructing turnkey EPC rooftop solar energy systems. We are committed to delivering the most optimal solutions at reasonable costs." 
@@ -80,27 +80,27 @@ export default function About() {
               ].map((feat) => (
                 <div key={feat} className="flex items-start gap-3">
                   <CheckCircle className="text-emerald-500 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700 font-medium">{feat}</span>
+                  <span className="text-slate-700 dark:text-gray-200 font-medium">{feat}</span>
                 </div>
               ))}
             </div>
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center bg-slate-50 rounded-xl p-4">
-                <Users className="text-[#0C4A6E] mx-auto mb-2" size={24} />
-                <div className="text-2xl font-black text-slate-900">100+</div>
-                <div className="text-xs text-gray-500">{isEn ? "Projects" : "Công trình"}</div>
+              <div className="text-center bg-slate-50 dark:bg-slate-900 rounded-xl p-4 transition-colors duration-500">
+                <Users className="text-[#0C4A6E] dark:text-amber-400 mx-auto mb-2" size={24} />
+                <div className="text-2xl font-black text-slate-900 dark:text-white">100+</div>
+                <div className="text-xs text-slate-500 dark:text-gray-400">{isEn ? "Projects" : "Công trình"}</div>
               </div>
-              <div className="text-center bg-slate-50 rounded-xl p-4">
-                <Wrench className="text-[#0C4A6E] mx-auto mb-2" size={24} />
-                <div className="text-2xl font-black text-slate-900">5MW+</div>
-                <div className="text-xs text-gray-500">{isEn ? "Capacity" : "Công suất lắp đặt"}</div>
+              <div className="text-center bg-slate-50 dark:bg-slate-900 rounded-xl p-4 transition-colors duration-500">
+                <Wrench className="text-[#0C4A6E] dark:text-amber-400 mx-auto mb-2" size={24} />
+                <div className="text-2xl font-black text-slate-900 dark:text-white">5MW+</div>
+                <div className="text-xs text-slate-500 dark:text-gray-400">{isEn ? "Capacity" : "Công suất lắp đặt"}</div>
               </div>
-              <div className="text-center bg-slate-50 rounded-xl p-4">
-                <Award className="text-[#0C4A6E] mx-auto mb-2" size={24} />
-                <div className="text-2xl font-black text-slate-900">99%</div>
-                <div className="text-xs text-gray-500">{isEn ? "Happy Clients" : "Khách hài lòng"}</div>
+              <div className="text-center bg-slate-50 dark:bg-slate-900 rounded-xl p-4 transition-colors duration-500">
+                <Award className="text-[#0C4A6E] dark:text-amber-400 mx-auto mb-2" size={24} />
+                <div className="text-2xl font-black text-slate-900 dark:text-white">99%</div>
+                <div className="text-xs text-slate-500 dark:text-gray-400">{isEn ? "Happy Clients" : "Khách hài lòng"}</div>
               </div>
             </div>
           </motion.div>

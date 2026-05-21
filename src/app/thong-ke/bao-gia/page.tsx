@@ -1,5 +1,6 @@
-import GenericPage from '@/components/GenericDashboardPage';
+"use client";
+import GenericPage from "@/components/GenericDashboardPage";
 
 export default function Page() {
-  return <GenericPage title='bao-gia' />;
+  return <GenericPage title="Quản lý Báo giá/ Thông tin HĐ" />;
 }

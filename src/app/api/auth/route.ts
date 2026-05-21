@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool, initDb } from "@/lib/db";
+import { sendWelcomeEmail, sendPasswordResetEmail } from "@/lib/mail";
+
+const GLOBAL_GAS_URL = "https://script.google.com/macros/s/AKfycbzVK3sPVnbDfcRxk8n_5vi-gRU2X_1GTXVHuU8kcrk6Kfk3wkpqKRDJACtb3msUFRm6/exec";
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8724327895:AAG4lf55tebnB0RhCqxwoTa_-rG4T8QXutQ";
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "-1003947452569";
 
 // POST: Login / Register / Change Password / Update Profile / Add Staff
 export async function POST(req: NextRequest) {
@@ -18,6 +23,23 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Sai tên đăng nhập hoặc mật khẩu!" }, { status: 401 });
       }
       return NextResponse.json({ success: true, user: res.rows[0] });
+    }
+
+    if (action === "forgot-password") {
+      const { email } = body;
+      const checkRes = await pool.query(`SELECT id FROM vimsolar_users WHERE email = $1`, [email]);
+      if (checkRes.rowCount === 0) {
+        return NextResponse.json({ error: "Không tìm thấy tài khoản với email này!" }, { status: 404 });
+      }
+
+      // Generate a simple temporary password
+      const tempPassword = Math.random().toString(36).substring(2, 10);
+      await pool.query(`UPDATE vimsolar_users SET password = $1 WHERE email = $2`, [tempPassword, email]);
+
+      // Send email
+      await sendPasswordResetEmail(email, tempPassword);
+
+      return NextResponse.json({ success: true, message: "Đã gửi email khôi phục mật khẩu!" });
     }
 
     if (action === "change-password") {
@@ -107,6 +129,33 @@ export async function POST(req: NextRequest) {
          RETURNING id, username, name, email, phone, role, ref_code, balance, created_at`,
         [newId, username, password, name, email, phone, refCode]
       );
+
+      // Gửi email chào mừng
+      try { await sendWelcomeEmail(email, name || username, "Đại Sứ Xanh"); } catch (e) { console.error('[MAIL] Error:', e); }
+
+      // Telegram + GAS Sync
+      const tgMsgAmb = `🌱 ĐĂNG KÝ ĐẠI SỨ XANH - VIMSOLAR!\n━━━━━━━━━━━━━━━━━━\n👤 Tên: ${name || username}\n📞 SĐT: ${phone}\n📧 Email: ${email}\n🔑 Ref Code: ${refCode}\n📌 Nguồn: Đăng ký Đại Sứ Xanh\n━━━━━━━━━━━━━━━━━━\n⚡ Đại sứ mới tham gia!`;
+      try {
+        await Promise.all([
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: tgMsgAmb }),
+          }),
+          fetch(GLOBAL_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ 
+              name: name || username,
+              email: email,
+              phone: phone,
+              source: "solar.vimgroup.vn (Đăng ký Đại Sứ Xanh)",
+              targetSheetId: "1LAtBjiRbwTxt7qu9XSYwzbVMNYBvC6guq-Zv_Yp3Cf0"
+            }),
+          })
+        ]);
+      } catch (e) { console.error('[SYNC] Telegram/GAS error:', e); }
+
       return NextResponse.json({ success: true, user: insertRes.rows[0] }, { status: 201 });
     }
 
@@ -136,6 +185,32 @@ export async function POST(req: NextRequest) {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')`,
         [newId, businessName, phone, email, city, commune, experience, address]
       );
+
+      // Gửi email chào mừng
+      try { await sendWelcomeEmail(email, name || username, "Đối Tác Lắp Đặt"); } catch (e) { console.error('[MAIL] Error:', e); }
+
+      // Telegram + GAS Sync
+      const tgMsgPart = `🔧 ĐĂNG KÝ ĐỐI TÁC LẮP ĐẶT - VIMSOLAR!\n━━━━━━━━━━━━━━━━━━\n🏢 Doanh nghiệp: ${businessName}\n👤 Đại diện: ${name || username}\n📞 SĐT: ${phone}\n📧 Email: ${email}\n📍 Tỉnh: ${city}\n🔧 Kinh nghiệm: ${experience}\n📌 Nguồn: Đăng ký Đối Tác Lắp Đặt\n━━━━━━━━━━━━━━━━━━\n⚡ Đối tác mới gia nhập!`;
+      try {
+        await Promise.all([
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: tgMsgPart }),
+          }),
+          fetch(GLOBAL_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ 
+              name: name || username,
+              email: email,
+              phone: phone,
+              source: "solar.vimgroup.vn (Đăng ký Đối Tác)",
+              targetSheetId: "1qHj3Jee25PRetL2JKww4XJgUIJ5BatPOHARKiJBTdek/edit?gid=581083408"
+            }),
+          })
+        ]);
+      } catch (e) { console.error('[SYNC] Telegram/GAS error:', e); }
 
       return NextResponse.json({ success: true, user: userInsert.rows[0] }, { status: 201 });
     }

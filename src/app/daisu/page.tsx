@@ -5,7 +5,7 @@ import { useI18n, I18nProvider } from "@/context/I18nContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Widgets from "@/components/Widgets";
-import { LayoutDashboard, Share2, HelpCircle, User, CreditCard, ChevronRight, Copy, CheckCircle2, DollarSign, Users, MousePointer, Wallet, LogOut, ArrowUpRight, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Share2, HelpCircle, User, CreditCard, ChevronRight, Copy, CheckCircle2, DollarSign, Users, MousePointer, Wallet, LogOut, ArrowUpRight, ShieldAlert, Award, FileText, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface AffiliateUser {
@@ -47,7 +47,7 @@ function DaisuPortalContent() {
   const router = useRouter();
 
   const [user, setUser] = useState<AffiliateUser | null>(null);
-  const [activeTab, setActiveTab] = useState<"tutorial" | "campaign" | "stats" | "bank">("stats");
+  const [activeTab, setActiveTab] = useState<"tutorial" | "campaign" | "stats" | "bank" | "submit-lead" | "salekit">("stats");
   const [copied, setCopied] = useState<string | null>(null);
 
   // Bank form state
@@ -60,6 +60,19 @@ function DaisuPortalContent() {
   // Payout state
   const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutMsg, setPayoutMsg] = useState({ text: "", type: "" });
+
+  // Lead form state
+  const [leadForm, setLeadForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    projectType: "Điện mặt trời Hộ gia đình",
+    systemSize: "5 - 10 kWp",
+    address: "",
+    notes: ""
+  });
+  const [submittingLead, setSubmittingLead] = useState(false);
+  const [leadSubmitMsg, setLeadSubmitMsg] = useState({ text: "", type: "" });
 
   // Data states
   const [stats, setStats] = useState({
@@ -205,6 +218,59 @@ function DaisuPortalContent() {
     }
   };
 
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingLead(true);
+    setLeadSubmitMsg({ text: "", type: "" });
+
+    // Validate phone number: exactly 10 digits
+    if (!/^[0-9]{10}$/.test(leadForm.phone)) {
+      setLeadSubmitMsg({ text: isEn ? "Phone number must be exactly 10 digits!" : "Số điện thoại phải bao gồm đúng 10 chữ số!", type: "error" });
+      setSubmittingLead(false);
+      return;
+    }
+
+    // Validate email if present
+    if (leadForm.email && !leadForm.email.includes("@")) {
+      setLeadSubmitMsg({ text: isEn ? "Email is invalid (must contain @)!" : "Email không hợp lệ (phải có ký tự @)!", type: "error" });
+      setSubmittingLead(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/affiliate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submit-lead-manual",
+          referrerId: user?.id,
+          ...leadForm
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gửi thông tin thất bại!");
+
+      setLeadSubmitMsg({ text: isEn ? "Lead submitted successfully!" : "Gửi thông tin khách hàng thành công! Đội ngũ kĩ sư đã được thông báo.", type: "success" });
+      setLeadForm({
+        name: "",
+        phone: "",
+        email: "",
+        projectType: "Điện mặt trời Hộ gia đình",
+        systemSize: "5 - 10 kWp",
+        address: "",
+        notes: ""
+      });
+      if (user) {
+        fetchAffiliateData(user.id);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setLeadSubmitMsg({ text: msg, type: "error" });
+    } finally {
+      setSubmittingLead(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
@@ -215,6 +281,46 @@ function DaisuPortalContent() {
 
   const referralUrl = typeof window !== "undefined" ? `${window.location.origin}/?ref=${user.ref_code}` : `https://solar.vimgroup.vn/?ref=${user.ref_code}`;
   const landingReferralUrl = typeof window !== "undefined" ? `${window.location.origin}/dai-su-xanh-dat?ref=${user.ref_code}` : `https://solar.vimgroup.vn/dai-su-xanh-dat?ref=${user.ref_code}`;
+
+  // Calculate dynamic tier promotion
+  const completedContracts = leads.filter(l => l.status === "completed").length;
+  let currentTier = "Bronze";
+  let currentTierName = isEn ? "Bronze Ambassador" : "Đại Sứ Đồng";
+  let currentCommRate = "2.0%";
+  let nextTierName = isEn ? "Silver Ambassador" : "Đại Sứ Bạc";
+  let nextTierComm = "2.2%";
+  let contractsNeeded = 1 - completedContracts;
+  let progressPercent = (completedContracts / 1) * 100;
+  let tierColorClass = "from-amber-700 via-amber-600 to-amber-800 text-amber-100";
+
+  if (completedContracts >= 5) {
+    currentTier = "Diamond";
+    currentTierName = isEn ? "Diamond Ambassador" : "Đại Sứ Kim Cương";
+    currentCommRate = "3.0%";
+    nextTierName = "";
+    nextTierComm = "";
+    contractsNeeded = 0;
+    progressPercent = 100;
+    tierColorClass = "from-cyan-500 via-blue-500 to-indigo-600 text-cyan-500";
+  } else if (completedContracts >= 3) {
+    currentTier = "Gold";
+    currentTierName = isEn ? "Gold Ambassador" : "Đại Sứ Vàng";
+    currentCommRate = "2.5%";
+    nextTierName = isEn ? "Diamond Ambassador" : "Đại Sứ Kim Cương";
+    nextTierComm = "3.0%";
+    contractsNeeded = 5 - completedContracts;
+    progressPercent = ((completedContracts - 3) / 2) * 100;
+    tierColorClass = "from-yellow-400 via-amber-500 to-yellow-600 text-yellow-400";
+  } else if (completedContracts >= 1) {
+    currentTier = "Silver";
+    currentTierName = isEn ? "Silver Ambassador" : "Đại Sứ Bạc";
+    currentCommRate = "2.2%";
+    nextTierName = isEn ? "Gold Ambassador" : "Đại Sứ Vàng";
+    nextTierComm = "2.5%";
+    contractsNeeded = 3 - completedContracts;
+    progressPercent = ((completedContracts - 1) / 2) * 100;
+    tierColorClass = "from-slate-300 via-slate-100 to-slate-400 text-slate-100";
+  }
 
   return (
     <div className="bg-slate-950 text-white min-h-screen flex flex-col justify-between">
@@ -269,10 +375,22 @@ function DaisuPortalContent() {
               <LayoutDashboard className="w-5 h-5" /> {isEn ? "Overview Stats" : "Thống Kê Tổng Quan"}
             </button>
             <button 
+              onClick={() => setActiveTab("submit-lead")} 
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm ${activeTab === "submit-lead" ? "bg-emerald-500 text-slate-950" : "hover:bg-white/5 text-gray-400"}`}
+            >
+              <Users className="w-5 h-5" /> {isEn ? "Introduce Client" : "Giới Thiệu Khách Hàng"}
+            </button>
+            <button 
               onClick={() => setActiveTab("campaign")} 
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm ${activeTab === "campaign" ? "bg-emerald-500 text-slate-950" : "hover:bg-white/5 text-gray-400"}`}
             >
               <Share2 className="w-5 h-5" /> {isEn ? "Campaign Share" : "Chiến Dịch Tiếp Thị"}
+            </button>
+            <button 
+              onClick={() => setActiveTab("salekit")} 
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm ${activeTab === "salekit" ? "bg-emerald-500 text-slate-950" : "hover:bg-white/5 text-gray-400"}`}
+            >
+              <FileText className="w-5 h-5" /> {isEn ? "Sales Kit & Training" : "Tài Liệu & Đào Tạo"}
             </button>
             <button 
               onClick={() => setActiveTab("tutorial")} 
@@ -307,6 +425,53 @@ function DaisuPortalContent() {
                       exit={{ opacity: 0, y: -10 }}
                       className="space-y-8"
                     >
+                      {/* Cấp Bậc Đại Sứ Progress Card */}
+                      <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-white/10 rounded-3xl p-6 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+                        <div className="absolute -top-12 -left-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                        
+                        <div className="flex items-center gap-4 relative z-10 w-full md:w-auto">
+                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${tierColorClass} flex items-center justify-center shadow-lg border border-white/20`}>
+                            <Award className="w-8 h-8 text-white animate-pulse" />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-gray-500 block uppercase font-bold tracking-widest">{isEn ? "Current Rank" : "Hạng Đại Sứ Hiện Tại"}</span>
+                            <h4 className="text-xl font-black text-white">{currentTierName}</h4>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {isEn ? `Commission Rate: ` : `Tỉ lệ hoa hồng: `}
+                              <span className="text-emerald-400 font-extrabold">{currentCommRate}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 w-full relative z-10">
+                          <div className="flex justify-between text-xs font-bold mb-1.5">
+                            <span className="text-gray-400">
+                              {isEn ? `${completedContracts} completed contracts` : `${completedContracts} hợp đồng bàn giao`}
+                            </span>
+                            <span className="text-emerald-400">
+                              {currentTier === "Diamond" ? (isEn ? "Max Rank!" : "Cấp tối đa!") : `${isEn ? "Next Rank" : "Lên hạng"}: ${nextTierName} (${nextTierComm})`}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-950/80 border border-white/5 rounded-full h-3 overflow-hidden p-0.5">
+                            <div 
+                              className={`h-full rounded-full bg-gradient-to-r ${
+                                currentTier === "Bronze" ? "from-amber-600 to-amber-500" :
+                                currentTier === "Silver" ? "from-slate-400 to-slate-200" :
+                                currentTier === "Gold" ? "from-yellow-500 to-amber-400" :
+                                "from-cyan-500 via-blue-500 to-emerald-400"
+                              }`}
+                              style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                            />
+                          </div>
+                          {currentTier !== "Diamond" && (
+                            <p className="text-[10px] text-gray-500 mt-1.5 font-bold">
+                              {isEn ? `💡 Complete ${contractsNeeded} more contract(s) to unlock higher commissions!` : `💡 Hoàn thành thêm ${contractsNeeded} hợp đồng nữa để nâng cấp hoa hồng lên ${nextTierComm}!`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
                       {/* Grid Stats cards */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-slate-900 border border-white/10 p-5 rounded-3xl relative overflow-hidden">
@@ -384,6 +549,213 @@ function DaisuPortalContent() {
                             </table>
                           </div>
                         )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TAB: SUBMIT LEAD (TỰ NHẬP KHÁCH HÀNG) */}
+                  {activeTab === "submit-lead" && (
+                    <motion.div 
+                      key="tab-submit-lead"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6"
+                    >
+                      <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
+                            <Users className="w-6 h-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-black text-slate-100">{isEn ? "Introduce New Client" : "Tự Nhập & Giới Thiệu Khách Hàng"}</h3>
+                            <p className="text-gray-400 text-sm mt-1">{isEn ? "Manually submit potential customers. They will be directly linked to your referral code." : "Điền thông tin khách hàng tiềm năng. Hệ thống tự động ghi nhận hoa hồng theo mã đại sứ của bạn."}</p>
+                          </div>
+                        </div>
+
+                        {leadSubmitMsg.text && (
+                          <div className={`p-4 mb-6 text-sm font-semibold rounded-xl border ${leadSubmitMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
+                            {leadSubmitMsg.text}
+                          </div>
+                        )}
+
+                        <form onSubmit={handleLeadSubmit} className="space-y-5">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Client Name *" : "Họ và Tên Khách Hàng *"}</label>
+                              <input 
+                                type="text" 
+                                value={leadForm.name} 
+                                onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
+                                placeholder="Nguyễn Văn A"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Phone Number (10 digits) *" : "Số Điện Thoại (10 số) *"}</label>
+                              <input 
+                                type="tel" 
+                                value={leadForm.phone} 
+                                onChange={(e) => setLeadForm({ ...leadForm, phone: e.target.value })}
+                                placeholder="09xxxxxxx"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Email Address" : "Địa Chỉ Email"}</label>
+                              <input 
+                                type="email" 
+                                value={leadForm.email} 
+                                onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
+                                placeholder="email@domain.com"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Installation Address" : "Địa Chỉ Lắp Đặt"}</label>
+                              <input 
+                                type="text" 
+                                value={leadForm.address} 
+                                onChange={(e) => setLeadForm({ ...leadForm, address: e.target.value })}
+                                placeholder="Quận 7, TP. HCM"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Project Type" : "Loại Công Trình Lắp Đặt"}</label>
+                              <select 
+                                value={leadForm.projectType}
+                                onChange={(e) => setLeadForm({ ...leadForm, projectType: e.target.value })}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white appearance-none"
+                              >
+                                <option value="Điện mặt trời Hộ gia đình">Điện mặt trời Hộ gia đình (Biệt thự/Nhà phố)</option>
+                                <option value="Điện mặt trời Bám tải B2B">Điện mặt trời Bám tải Doanh Nghiệp (Nhà xưởng)</option>
+                                <option value="Hệ thống Bơm năng lượng">Hệ thống Bơm nước NLMT (Nông nghiệp)</option>
+                                <option value="Hệ thống lưu trữ ESS">Hệ thống lưu trữ công nghiệp (ESS)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Estimated System Size" : "Công Suất Dự Kiến"}</label>
+                              <select 
+                                value={leadForm.systemSize}
+                                onChange={(e) => setLeadForm({ ...leadForm, systemSize: e.target.value })}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white appearance-none"
+                              >
+                                <option value="Dưới 5 kWp">Dưới 5 kWp (Khoảng 60tr - 80tr)</option>
+                                <option value="5 - 10 kWp">Từ 5 - 10 kWp (Khoảng 100tr - 200tr)</option>
+                                <option value="10 - 50 kWp">Từ 10 - 50 kWp (Dự án nhỏ)</option>
+                                <option value="Trên 50 kWp">Trên 50 kWp (Dự án doanh nghiệp)</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold uppercase block mb-1.5">{isEn ? "Additional Notes" : "Ghi Chú Thêm Dành Cho Kỹ Sư"}</label>
+                            <textarea 
+                              value={leadForm.notes} 
+                              onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })}
+                              placeholder={isEn ? "Client requirements, roof condition..." : "Khách hàng cần tư vấn khung giờ nào, nhà mái ngói hay mái tôn..."}
+                              rows={3}
+                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white resize-none"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={submittingLead}
+                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                          >
+                            {submittingLead ? (isEn ? "Submitting..." : "Đang Gửi Dữ Liệu...") : (isEn ? "Submit Client Lead" : "Xác Nhận Giới Thiệu Khách Hàng")} <ArrowUpRight className="w-5 h-5" />
+                          </button>
+                        </form>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TAB: SALES KIT & TRAINING */}
+                  {activeTab === "salekit" && (
+                    <motion.div 
+                      key="tab-salekit"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6"
+                    >
+                      <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8">
+                        <h3 className="text-xl font-black text-slate-100 mb-2">{isEn ? "Sales Kit & Product Brochures" : "Kho Tài Liệu Kỹ Thuật & Đào Tạo Bán Hàng"}</h3>
+                        <p className="text-gray-400 text-sm mb-8">{isEn ? "Download catalog and specs to confidently present VimSolar top-tier products to your clients." : "Tải xuống các tài liệu chuẩn (Specs, Brochure, Quy chế) để trình bày và tư vấn chuyên nghiệp nhất với khách hàng."}</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between group hover:border-emerald-500/30 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Catalogue Pin LESSO N-Type</h4>
+                                <p className="text-[10px] text-gray-500 mt-0.5">PDF • 3.2 MB • Tier 1 Solar Panels</p>
+                              </div>
+                            </div>
+                            <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="bg-slate-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between group hover:border-emerald-500/30 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Datasheet Deye Hybrid Inverter</h4>
+                                <p className="text-[10px] text-gray-500 mt-0.5">PDF • 1.8 MB • Sun-5/8/12K-SG04</p>
+                              </div>
+                            </div>
+                            <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="bg-slate-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between group hover:border-emerald-500/30 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Specs Pin Lưu Trữ POWERBOX</h4>
+                                <p className="text-[10px] text-gray-500 mt-0.5">PDF • 2.5 MB • Pro Max 10.24kWh</p>
+                              </div>
+                            </div>
+                            <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="bg-slate-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500" />
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                                <Award className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Sổ Tay Quy Chế Đại Sứ VimSolar</h4>
+                                <p className="text-[10px] text-gray-500 mt-0.5">PDF • 4.1 MB • Cập nhật 2026</p>
+                              </div>
+                            </div>
+                            <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all mr-2">
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
                     </motion.div>
                   )}
@@ -519,111 +891,166 @@ function DaisuPortalContent() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                      className="space-y-8"
                     >
-                      {/* Bank account updates */}
-                      <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-4">
-                        <h3 className="text-lg font-black text-slate-100">{isEn ? "Bank Account Details" : "Tài Khoản Nhận Hoa Hồng"}</h3>
-                        <p className="text-gray-400 text-xs">{isEn ? "Provide your bank details to facilitate direct wire transfers. Make sure name aligns with owner profile." : "Vui lòng cung cấp chính xác thông tin tài khoản ngân hàng chính chủ của bạn để hệ thống thực hiện chuyển khoản tự động."}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Bank account updates */}
+                        <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-4">
+                          <h3 className="text-lg font-black text-slate-100">{isEn ? "Bank Account Details" : "Tài Khoản Nhận Hoa Hồng"}</h3>
+                          <p className="text-gray-400 text-xs">{isEn ? "Provide your bank details to facilitate direct wire transfers. Make sure name aligns with owner profile." : "Vui lòng cung cấp chính xác thông tin tài khoản ngân hàng chính chủ của bạn để hệ thống thực hiện chuyển khoản tự động."}</p>
 
-                        {bankMsg.text && (
-                          <div className={`p-3 text-xs font-semibold rounded-xl border ${bankMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
-                            {bankMsg.text}
-                          </div>
-                        )}
-
-                        <form onSubmit={handleBankSubmit} className="space-y-4">
-                          <div>
-                            <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Bank Name *" : "Tên Ngân Hàng *"}</label>
-                            <input 
-                              type="text" 
-                              value={bankForm.bankName} 
-                              onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-                              placeholder="e.g. Vietcombank, Techcombank..."
-                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Account Number *" : "Số Tài Khoản *"}</label>
-                            <input 
-                              type="text" 
-                              value={bankForm.bankAccount} 
-                              onChange={(e) => setBankForm({ ...bankForm, bankAccount: e.target.value })}
-                              placeholder="1902xxxxxxxxx"
-                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Account Holder Name *" : "Họ Tên Chủ Tài Khoản *"}</label>
-                            <input 
-                              type="text" 
-                              value={bankForm.bankHolder} 
-                              onChange={(e) => setBankForm({ ...bankForm, bankHolder: e.target.value.toUpperCase() })}
-                              placeholder="NGUYEN VAN A"
-                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white font-bold uppercase"
-                              required
-                            />
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={submittingBank}
-                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-3 rounded-xl text-sm transition-all"
-                          >
-                            {submittingBank ? (isEn ? "Saving..." : "Đang lưu...") : (isEn ? "Save Bank Profile" : "Cập Nhật Tài Khoản")}
-                          </button>
-                        </form>
-                      </div>
-
-                      {/* Payout requests */}
-                      <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 flex flex-col justify-between">
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-black text-slate-100">{isEn ? "Request Commission Withdrawal" : "Yêu Cầu Rút Tiền"}</h3>
-                          <p className="text-gray-400 text-xs">{isEn ? "Withdraw your active available balance directly to your wire account." : "Chuyển đổi số dư tích lũy khả dụng về tài khoản ngân hàng đã thiết lập."}</p>
-
-                          <div className="p-4 bg-slate-950 border border-white/5 rounded-2xl flex items-center justify-between">
-                            <div>
-                              <span className="text-[10px] text-gray-500 block uppercase font-bold">{isEn ? "Available Balance" : "Số Dư Khả Dụng"}</span>
-                              <span className="text-2xl font-black text-amber-400">{stats.balance.toLocaleString("vi-VN")} đ</span>
-                            </div>
-                            <Wallet className="w-10 h-10 text-amber-400/20" />
-                          </div>
-
-                          {payoutMsg.text && (
-                            <div className={`p-3 text-xs font-semibold rounded-xl border ${payoutMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
-                              {payoutMsg.text}
+                          {bankMsg.text && (
+                            <div className={`p-3 text-xs font-semibold rounded-xl border ${bankMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
+                              {bankMsg.text}
                             </div>
                           )}
 
-                          <form onSubmit={handlePayoutRequest} className="space-y-4">
+                          <form onSubmit={handleBankSubmit} className="space-y-4">
                             <div>
-                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Withdrawal Amount (đ) *" : "Số Tiền Muốn Rút (đ) *"}</label>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Bank Name *" : "Tên Ngân Hàng *"}</label>
                               <input 
-                                type="number" 
-                                value={payoutAmount} 
-                                onChange={(e) => setPayoutAmount(e.target.value)}
-                                placeholder={isEn ? "e.g. 2000000" : "Ví dụ: 2000000"}
-                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white font-mono"
+                                type="text" 
+                                value={bankForm.bankName} 
+                                onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
+                                placeholder="e.g. Vietcombank, Techcombank..."
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Account Number *" : "Số Tài Khoản *"}</label>
+                              <input 
+                                type="text" 
+                                value={bankForm.bankAccount} 
+                                onChange={(e) => setBankForm({ ...bankForm, bankAccount: e.target.value })}
+                                placeholder="1902xxxxxxxxx"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Account Holder Name *" : "Họ Tên Chủ Tài Khoản *"}</label>
+                              <input 
+                                type="text" 
+                                value={bankForm.bankHolder} 
+                                onChange={(e) => setBankForm({ ...bankForm, bankHolder: e.target.value.toUpperCase() })}
+                                placeholder="NGUYEN VAN A"
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white font-bold uppercase"
                                 required
                               />
                             </div>
 
                             <button
                               type="submit"
-                              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-3 rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                              disabled={submittingBank}
+                              className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-3 rounded-xl text-sm transition-all"
                             >
-                              {isEn ? "Request Payout" : "Yêu Cầu Giải Ngân"} <ArrowUpRight className="w-4 h-4" />
+                              {submittingBank ? (isEn ? "Saving..." : "Đang lưu...") : (isEn ? "Save Bank Profile" : "Cập Nhật Tài Khoản")}
                             </button>
                           </form>
                         </div>
 
-                        {/* Audit warning info */}
-                        <div className="mt-6 flex items-start gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
-                          <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                          <p className="text-[10px] text-gray-400 leading-relaxed">{isEn ? "Note: Withdrawals must conform with PIT tax regulations (10% automatically deducted for single amounts over 2M). Funds are cleared in 24 hours." : "Lưu ý: Mức rút tối thiểu là 200,000đ. Các khoản thanh toán trên 2,000,000đ sẽ tự động trích nộp 10% thuế Thu Nhập Cá Nhân (TNCN) theo quy định của Pháp luật."}</p>
+                        {/* Payout requests */}
+                        <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 flex flex-col justify-between">
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-black text-slate-100">{isEn ? "Request Commission Withdrawal" : "Yêu Cầu Rút Tiền"}</h3>
+                            <p className="text-gray-400 text-xs">{isEn ? "Withdraw your active available balance directly to your wire account." : "Chuyển đổi số dư tích lũy khả dụng về tài khoản ngân hàng đã thiết lập."}</p>
+
+                            <div className="p-4 bg-slate-950 border border-white/5 rounded-2xl flex items-center justify-between">
+                              <div>
+                                <span className="text-[10px] text-gray-500 block uppercase font-bold">{isEn ? "Available Balance" : "Số Dư Khả Dụng"}</span>
+                                <span className="text-2xl font-black text-amber-400">{stats.balance.toLocaleString("vi-VN")} đ</span>
+                              </div>
+                              <Wallet className="w-10 h-10 text-amber-400/20" />
+                            </div>
+
+                            {payoutMsg.text && (
+                              <div className={`p-3 text-xs font-semibold rounded-xl border ${payoutMsg.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
+                                {payoutMsg.text}
+                              </div>
+                            )}
+
+                            <form onSubmit={handlePayoutRequest} className="space-y-4">
+                              <div>
+                                <label className="text-xs text-gray-500 font-bold uppercase block mb-1">{isEn ? "Withdrawal Amount (đ) *" : "Số Tiền Muốn Rút (đ) *"}</label>
+                                <input 
+                                  type="number" 
+                                  value={payoutAmount} 
+                                  onChange={(e) => setPayoutAmount(e.target.value)}
+                                  placeholder={isEn ? "e.g. 2000000" : "Ví dụ: 2000000"}
+                                  className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white font-mono"
+                                  required
+                                />
+                              </div>
+
+                              <button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black py-3 rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                              >
+                                {isEn ? "Request Payout" : "Yêu Cầu Giải Ngân"} <ArrowUpRight className="w-4 h-4" />
+                              </button>
+                            </form>
+                          </div>
+
+                          {/* Audit warning info */}
+                          <div className="mt-6 flex items-start gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
+                            <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-gray-400 leading-relaxed">{isEn ? "Note: Withdrawals must conform with PIT tax regulations (10% automatically deducted for single amounts over 2M). Funds are cleared in 24 hours." : "Lưu ý: Mức rút tối thiểu là 200,000đ. Các khoản thanh toán trên 2,000,000đ sẽ tự động trích nộp 10% thuế Thu Nhập Cá Nhân (TNCN) theo quy định của Pháp luật."}</p>
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Transactions History Table */}
+                      <div className="bg-slate-900 border border-white/10 rounded-3xl p-6">
+                        <h3 className="text-lg font-black mb-4">{isEn ? "Payout Transactions" : "Lịch Sử Giao Dịch Rút Tiền"}</h3>
+                        
+                        {earnings.filter((e) => e.amount < 0).length === 0 ? (
+                          <p className="text-sm text-gray-500 py-6 text-center">{isEn ? "No withdrawal requests yet." : "Chưa có yêu cầu rút tiền nào."}</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs text-slate-300">
+                              <thead>
+                                <tr className="border-b border-white/5 pb-2 text-gray-500 uppercase font-black tracking-wider">
+                                  <th className="py-2">{isEn ? "Transaction ID" : "Mã GD"}</th>
+                                  <th className="py-2">{isEn ? "Date" : "Thời Gian"}</th>
+                                  <th className="py-2 text-right">{isEn ? "Amount" : "Số Tiền Trừ"}</th>
+                                  <th className="py-2">{isEn ? "Bank Info" : "Thông Tin Nhận"}</th>
+                                  <th className="py-2">{isEn ? "Status" : "Trạng Thái"}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/5">
+                                {earnings.filter((e) => e.amount < 0).map((e) => (
+                                  <tr key={e.id} className="hover:bg-white/5 transition-colors">
+                                    <td className="py-3.5 font-bold font-mono">#{e.id.toString().padStart(5, '0')}</td>
+                                    <td className="py-3.5 text-gray-400 font-mono">{new Date(e.created_at).toLocaleString("vi-VN")}</td>
+                                    <td className="py-3.5 text-right font-black text-amber-400">{Math.abs(e.amount).toLocaleString("vi-VN")} đ</td>
+                                    <td className="py-3.5">
+                                      {user.bank_name && user.bank_account ? (
+                                        <>
+                                          <span className="block font-bold">{user.bank_name}</span>
+                                          <span className="block text-[10px] text-gray-500">{user.bank_account} - {user.bank_holder}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-gray-500">-</span>
+                                      )}
+                                    </td>
+                                    <td className="py-3.5">
+                                      <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                        e.status === "paid" ? "bg-emerald-500/10 text-emerald-400" :
+                                        e.status === "rejected" ? "bg-red-500/10 text-red-400" :
+                                        "bg-amber-500/10 text-amber-400"
+                                      }`}>
+                                        {e.status === "paid" ? (isEn ? "Success" : "Thành Công") :
+                                         e.status === "rejected" ? (isEn ? "Rejected" : "Từ Chối") :
+                                         (isEn ? "Pending" : "Chờ Duyệt")}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}

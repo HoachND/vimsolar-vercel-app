@@ -56,21 +56,21 @@ export default function PartnerProgram() {
   ];
 
   return (
-    <section id="partner-program" className="py-24 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 text-white overflow-hidden relative">
+    <section id="partner-program" className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 text-slate-900 dark:text-white overflow-hidden relative transition-colors duration-500">
       {/* Decorative Lights */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <p className="text-amber-400 font-extrabold tracking-widest text-xs uppercase flex items-center justify-center gap-2">
+          <p className="text-amber-600 dark:text-amber-400 font-extrabold tracking-widest text-xs uppercase flex items-center justify-center gap-2">
             <Users size={14} />
             {isEn ? "PARTNER PROGRAMS" : "ĐỐI TÁC ĐỒNG HÀNH"}
           </p>
           <h3 className="text-3xl sm:text-4xl md:text-5xl font-black mt-2">
             {isEn ? "Grow Together with VimSolar" : "Đồng Hành Phát Triển Cùng VimSolar"}
           </h3>
-          <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-sm sm:text-base">
+          <p className="text-slate-600 dark:text-slate-400 mt-4 max-w-2xl mx-auto text-sm sm:text-base">
             {isEn
               ? "Join hands with VimSolar to deploy clean energy across Vietnam. We offer lucrative programs for active installers and social advocates."
               : "Bắt tay hợp tác cùng VimSolar lan tỏa năng lượng xanh, kiến tạo giá trị và gia tăng thu nhập thụ động bền vững."}
@@ -79,13 +79,13 @@ export default function PartnerProgram() {
 
         {/* Tab Switcher */}
         <div className="flex justify-center mb-12">
-          <div className="bg-slate-950 p-1.5 rounded-full border border-slate-700 flex gap-2">
+          <div className="bg-slate-100 dark:bg-slate-950 p-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex gap-2 shadow-sm dark:shadow-none">
             <button
               onClick={() => setActiveTab("installer")}
               className={`px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 ${
                 activeTab === "installer"
                   ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {isEn ? "Become an Installer Partner" : "Đối tác lắp đặt"}
@@ -95,7 +95,7 @@ export default function PartnerProgram() {
               className={`px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 ${
                 activeTab === "ambassador"
                   ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {isEn ? "Become a Green Ambassador" : "Đại sứ xanh"}
@@ -117,16 +117,16 @@ export default function PartnerProgram() {
               >
                 {/* Info Column */}
                 <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-extrabold uppercase">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 rounded-full text-xs font-extrabold uppercase">
                     <Shield size={12} />
                     {isEn ? "Professional Installer Network" : "Mạng lưới đối tác thi công chuyên nghiệp"}
                   </div>
-                  <h4 className="text-2xl sm:text-3xl font-black leading-tight text-white">
+                  <h4 className="text-2xl sm:text-3xl font-black leading-tight text-slate-900 dark:text-white">
                     {isEn
                       ? "Empowering Local Installers with Superior Pricing & Engineering Support"
                       : "Trở Thành Đối Tác Lắp Đặt VimSolar — Tối Ưu Lợi Nhuận, Trọn Gói Kỹ Thuật"}
                   </h4>
-                  <p className="text-slate-400 text-sm sm:text-base">
+                  <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
                     {isEn
                       ? "We provide certified premium equipment direct from Horus Power (Hoa Phat ecosystem) alongside state-of-the-art technical backup, allowing local installers to focus entirely on perfect execution."
                       : "Chúng tôi cung cấp thiết bị chính hãng giá tốt nhất cùng bệ phóng kỹ thuật toàn diện, giúp các đội thi công địa phương tự tin đấu thầu, lắp đặt và tối ưu hóa lợi nhuận."}
@@ -134,11 +134,11 @@ export default function PartnerProgram() {
 
                   <div className="space-y-4">
                     {installerBenefits.map((benefit, idx) => (
-                      <div key={idx} className="flex gap-4 items-start bg-slate-950/40 p-4 rounded-xl border border-slate-800">
-                        <CheckCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
+                      <div key={idx} className="flex gap-4 items-start bg-slate-100 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <CheckCircle className="text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" size={20} />
                         <div>
-                          <h5 className="font-extrabold text-sm sm:text-base text-slate-100">{benefit.title}</h5>
-                          <p className="text-xs sm:text-sm text-slate-400 mt-1">{benefit.desc}</p>
+                          <h5 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100">{benefit.title}</h5>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">{benefit.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -146,30 +146,39 @@ export default function PartnerProgram() {
                 </div>
 
                 {/* Visual Column / Form CTA */}
-                <div className="bg-slate-950/80 p-8 rounded-3xl border border-slate-800 shadow-2xl relative">
-                  <h4 className="text-xl sm:text-2xl font-black mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-slate-950/80 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl relative">
+                  <h4 className="text-xl sm:text-2xl font-black mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
                     <Sparkles className="text-amber-500" />
                     {isEn ? "Request Partnership Policy" : "Nhận Chính Sách Chiết Khấu Bán Hàng"}
                   </h4>
-                  <p className="text-slate-400 text-xs sm:text-sm mb-6">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mb-6">
                     {isEn
                       ? "Submit your company or team details to receive direct factory pricing catalog & partnership policy within 2 hours."
                       : "Để lại thông tin để nhận bảng giá đại lý từ nhà phân phối và các cam kết hỗ trợ dự án từ VimSolar."}
                   </p>
 
-                  <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert(isEn ? 'Registration sent! Redirecting to Partner Portal.' : 'Đăng ký thành công! Hệ thống sẽ chuyển hướng đến trang quản lý.'); window.location.href = '/thong-ke'; }}>
+                  <form className="space-y-4" onSubmit={(e) => { 
+                    e.preventDefault(); 
+                    const formData = new FormData(e.currentTarget);
+                    const phone = formData.get('phone') as string;
+                    if (phone && !/^[0-9]{10}$/.test(phone)) {
+                      alert('Số điện thoại phải bao gồm đúng 10 chữ số!');
+                      return;
+                    }
+                    window.location.href = '/doi-tac-lap-dat'; 
+                  }}>
                     <div>
-                      <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Company/Team Name" : "Tên Công ty/Tổ đội"}</label>
-                      <input type="text" required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Your organization" : "Nhập tên đơn vị"} />
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase">{isEn ? "Company/Team Name" : "Tên Công ty/Tổ đội"}</label>
+                      <input type="text" required className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-slate-900 dark:text-white" placeholder={isEn ? "Your organization" : "Nhập tên đơn vị"} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Phone/Zalo" : "Số điện thoại / Zalo"}</label>
-                        <input type="tel" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder="Ví dụ: 0987654321" />
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase">{isEn ? "Phone/Zalo" : "Số điện thoại / Zalo"}</label>
+                        <input type="tel" name="phone" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-slate-900 dark:text-white" placeholder="Ví dụ: 0987654321" />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Operating Area" : "Khu vực hoạt động"}</label>
-                        <select required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-white">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase">{isEn ? "Operating Area" : "Khu vực hoạt động"}</label>
+                        <select required className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-slate-900 dark:text-white">
                           <option value="">{isEn ? "Select Province" : "Chọn Tỉnh/Thành"}</option>
                           <option value="Hà Nội">Hà Nội</option>
                           <option value="Hồ Chí Minh">Hồ Chí Minh</option>
@@ -255,16 +264,16 @@ export default function PartnerProgram() {
               >
                 {/* Info Column */}
                 <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-extrabold uppercase">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 rounded-full text-xs font-extrabold uppercase">
                     <Award size={12} />
                     {isEn ? "Passive Income Program" : "Chương trình gia tăng thu nhập thụ động"}
                   </div>
-                  <h4 className="text-2xl sm:text-3xl font-black leading-tight text-white">
+                  <h4 className="text-2xl sm:text-3xl font-black leading-tight text-slate-900 dark:text-white">
                     {isEn
                       ? "Become a VimSolar Green Ambassador — Refer & Earn 2% Commission"
                       : "Trở Thành Đại Sứ Xanh VimSolar — Không Ràng Buộc Doanh Số, Hoa Hồng 2%"}
                   </h4>
-                  <p className="text-slate-400 text-sm sm:text-base">
+                  <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
                     {isEn
                       ? "Zero investment, no experience, completely flexible. Simply connect businesses or homeowners who need clean solar energy to VimSolar, and get paid handsomely when contracts close."
                       : "Làm việc tự do, không cần bỏ vốn, không ép doanh số. Bạn chỉ cần chia sẻ kiến thức hữu ích hoặc kết nối các chủ hộ gia đình, chủ xưởng có nhu cầu tiết kiệm điện tới VimSolar."}
@@ -277,8 +286,8 @@ export default function PartnerProgram() {
                           {step.step}
                         </div>
                         <div>
-                          <h5 className="font-extrabold text-sm sm:text-base text-slate-100">{step.title}</h5>
-                          <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">{step.desc}</p>
+                          <h5 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100">{step.title}</h5>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">{step.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -286,25 +295,25 @@ export default function PartnerProgram() {
                 </div>
 
                 {/* Commission Table Column */}
-                <div className="bg-slate-950/80 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl relative">
-                  <h4 className="text-lg sm:text-xl font-black mb-6 text-center text-white flex items-center justify-center gap-2">
+                <div className="bg-white dark:bg-slate-950/80 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl relative">
+                  <h4 className="text-lg sm:text-xl font-black mb-6 text-center text-slate-900 dark:text-white flex items-center justify-center gap-2">
                     <Sparkles className="text-amber-500" />
                     {isEn ? "Estimated Commission Table" : "Bảng Chính Sách Hoa Hồng Đại Sứ"}
                   </h4>
 
-                  <div className="overflow-hidden border border-slate-800 rounded-xl mb-6">
+                  <div className="overflow-hidden border border-slate-200 dark:border-slate-800 rounded-xl mb-6">
                     <table className="w-full text-left text-xs sm:text-sm">
-                      <thead className="bg-slate-900/60 border-b border-slate-800 text-slate-400">
+                      <thead className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
                         <tr>
                           <th className="px-4 py-3 font-extrabold">{isEn ? "Solar Project Value" : "Giá Trị Hợp Đồng"}</th>
-                          <th className="px-4 py-3 font-extrabold text-amber-400">{isEn ? "Commission (2%)" : "Hoa Hồng Thực Nhận"}</th>
+                          <th className="px-4 py-3 font-extrabold text-amber-600 dark:text-amber-400">{isEn ? "Commission (2%)" : "Hoa Hồng Thực Nhận"}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                         {commissions.map((comm, idx) => (
-                          <tr key={idx} className="hover:bg-white/5 transition-colors">
-                            <td className="px-4 py-3 font-medium text-slate-300">{comm.value}</td>
-                            <td className="px-4 py-3 font-extrabold text-amber-400">{comm.reward}</td>
+                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                            <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{comm.value}</td>
+                            <td className="px-4 py-3 font-extrabold text-amber-600 dark:text-amber-400">{comm.reward}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -316,16 +325,25 @@ export default function PartnerProgram() {
                       : "*Chú ý: Hoa hồng được đối soát và thanh toán nhanh chóng trong vòng 24 giờ sau khi khách hàng hoàn tất thanh toán đợt 1."}
                   </p>
 
-                  <h4 className="text-lg sm:text-xl font-black mt-8 mb-4 text-center text-white flex items-center justify-center gap-2">
+                  <h4 className="text-lg sm:text-xl font-black mt-8 mb-4 text-center text-slate-900 dark:text-white flex items-center justify-center gap-2">
                     <Sparkles className="text-amber-500" />
                     {isEn ? "Ambassador Registration" : "Đăng Ký Trở Thành Đại Sứ"}
                   </h4>
-                  <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert(isEn ? 'Registration sent! Redirecting to Ambassador Portal.' : 'Đăng ký thành công! Hệ thống sẽ chuyển hướng đến trang quản lý Đại Sứ.'); window.location.href = '/daisu'; }}>
+                  <form className="space-y-4" onSubmit={(e) => { 
+                    e.preventDefault(); 
+                    const formData = new FormData(e.currentTarget);
+                    const phone = formData.get('phone') as string;
+                    if (phone && !/^[0-9]{10}$/.test(phone)) {
+                      alert('Số điện thoại phải bao gồm đúng 10 chữ số!');
+                      return;
+                    }
+                    window.location.href = '/dai-su-xanh-dat'; 
+                  }}>
                     <div>
-                      <input type="text" required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Full Name" : "Họ và Tên"} />
+                      <input type="text" required className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-slate-900 dark:text-white" placeholder={isEn ? "Full Name" : "Họ và Tên"} />
                     </div>
                     <div>
-                      <input type="tel" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Phone Number (10 digits)" : "Số điện thoại (10 số)"} />
+                      <input type="tel" name="phone" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-slate-900 dark:text-white" placeholder={isEn ? "Phone Number (10 digits)" : "Số điện thoại (10 số)"} />
                     </div>
                     <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-4 rounded-xl text-center hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all">
                       {isEn ? "Register Now" : "Đăng Ký Ngay"}

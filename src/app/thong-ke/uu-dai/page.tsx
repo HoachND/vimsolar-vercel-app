@@ -1,5 +1,6 @@
-import GenericPage from '@/components/GenericDashboardPage';
+"use client";
+import GenericPage from "@/components/GenericDashboardPage";
 
 export default function Page() {
-  return <GenericPage title='uu-dai' />;
+  return <GenericPage title="Quản lý Ưu đãi và hoàn phí" />;
 }

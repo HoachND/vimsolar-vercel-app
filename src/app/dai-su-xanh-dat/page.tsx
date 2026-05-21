@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { I18nProvider, useI18n } from "@/context/I18nContext";
+import { signIn } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Widgets from "@/components/Widgets";
@@ -26,6 +27,10 @@ function AmbassadorLandingContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("vimsolar-admin-session");
@@ -48,38 +53,95 @@ function AmbassadorLandingContent() {
     setLoading(true);
     setError("");
 
-    try {
-      const action = isRegister ? "register-ambassador" : "login";
-      const payload = isRegister 
-        ? { action, ...formData }
-        : { action, username: formData.username, password: formData.password };
-
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Có lỗi xảy ra");
+    if (isRegister) {
+      if (!/^[0-9]{10}$/.test(formData.phone)) {
+        setError(isEn ? "Phone number must be exactly 10 digits!" : "Số điện thoại phải bao gồm đúng 10 chữ số!");
+        setLoading(false);
+        return;
       }
+      if (!formData.email.includes("@")) {
+        setError(isEn ? "Invalid email (missing @)!" : "Email không hợp lệ (thiếu @)!");
+        setLoading(false);
+        return;
+      }
+    }
 
+    try {
       if (isRegister) {
+        // Vẫn giữ lại fetch tới /api/auth để handle đăng ký mới và gửi email / webhook
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "register-ambassador", ...formData }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Registration failed!");
+
         setSuccess(true);
-        // Automatically switch to login after 3 seconds or let them log in
         setTimeout(() => {
           setIsRegister(false);
           setSuccess(false);
-        }, 2000);
+        }, 3000);
       } else {
-        // Save session and redirect to Ambassador Portal /daisu
-        localStorage.setItem("vimsolar-admin-session", JSON.stringify(data.user));
+        // Sử dụng NextAuth cho đăng nhập
+        const res = await signIn("credentials", {
+          redirect: false,
+          username: formData.username.trim(),
+          password: formData.password,
+        });
+
+        if (res?.error) {
+          throw new Error(res.error);
+        }
+
         router.push("/daisu");
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error connecting to server";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim() || !resetEmail.includes("@")) {
+      setError(isEn ? "Invalid email!" : "Vui lòng nhập email hợp lệ!");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "forgot-password", email: resetEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Không tìm thấy email!");
+      setResetSuccess(true);
+      setTimeout(() => {
+        setIsForgotPassword(false);
+        setResetSuccess(false);
+        setResetEmail("");
+      }, 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi kết nối server!";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await signIn("google", { callbackUrl: "/daisu" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi xác thực Google!";
       setError(msg);
     } finally {
       setLoading(false);
@@ -218,7 +280,41 @@ function AmbassadorLandingContent() {
                     </div>
                   )}
 
-                  <form onSubmit={handleAuth} className="space-y-4">
+                  {isForgotPassword ? (
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      {resetSuccess && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-4 rounded-xl mb-4 font-semibold text-center">
+                          ✅ Đã gửi hướng dẫn khôi phục mật khẩu vào email của bạn!
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Your Email" : "Email của bạn"}</label>
+                        <input 
+                          type="email" 
+                          value={resetEmail} 
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          placeholder="name@gmail.com"
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4"
+                      >
+                        {loading ? "Đang xử lý..." : "Gửi Yêu Cầu"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsForgotPassword(false); setError(""); }}
+                        className="w-full font-bold py-3 text-sm text-gray-400 hover:text-white transition-colors"
+                      >
+                        Quay lại đăng nhập
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleAuth} className="space-y-4">
                     {isRegister && (
                       <>
                         <div>
@@ -276,16 +372,32 @@ function AmbassadorLandingContent() {
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
-                      <input 
-                        type="password" 
-                        name="password" 
-                        value={formData.password} 
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                        required
-                      />
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
+                        {!isRegister && (
+                          <button type="button" onClick={() => { setIsForgotPassword(true); setError(""); }} className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold">
+                            {isEn ? "Forgot password?" : "Quên mật khẩu?"}
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          name="password" 
+                          value={formData.password} 
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showPassword ? <Lock className="w-4 h-4" /> : <Lock className="w-4 h-4 opacity-50" />}
+                        </button>
+                      </div>
                     </div>
 
                     <button
@@ -296,7 +408,29 @@ function AmbassadorLandingContent() {
                       {loading ? (isEn ? "Processing..." : "Đang xử lý...") : (isRegister ? (isEn ? "Register Free Now" : "Đăng Ký Miễn Phí Ngay") : (isEn ? "Access Ambassador Portal" : "Vào Trang Quản Trị Đại Sứ"))}
                       <ArrowRight className="w-4 h-4" />
                     </button>
+
+                    <div className="relative flex items-center py-2 mt-2">
+                      <div className="flex-grow border-t border-white/10"></div>
+                      <span className="flex-shrink-0 mx-4 text-xs text-gray-500">HOẶC</span>
+                      <div className="flex-grow border-t border-white/10"></div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGoogleAuth}
+                      disabled={loading}
+                      className="w-full bg-white text-slate-900 font-bold py-3 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors shadow-sm"
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                      {isRegister ? "Đăng ký với Google" : "Đăng nhập với Google"}
+                    </button>
                   </form>
+                  )}
 
                   <p className="text-[10px] text-gray-500 text-center mt-4">
                     🛡️ {isEn ? "Your account is secure. 10% PIT is automatically withheld." : "Bảo mật thông tin 100%. Tự động giảm trừ thuế TNCN 10% theo quy định."}

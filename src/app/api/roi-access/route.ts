@@ -54,26 +54,34 @@ export async function POST(req: NextRequest) {
         console.error("Mail Error:", mailErr);
       }
 
-      // 2. Sync background (Telegram & GAS)
+      // 2. Sync Telegram & GAS (MUST await to prevent serverless cutoff)
       const tgMessage = `🔓 ĐĂNG KÝ ROI TOOL - VIMSOLAR!\n\n👤 Tên: ${name}\n📞 SĐT: ${phoneClean}\n📧 Email: ${email}\n🔑 Mã truy cập: ${code}\n📌 Nguồn: ROI Tool Registration\n\n⚡ Khách hàng quan tâm Solar!`;
       
-      Promise.all([
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: tgMessage }),
-        }),
-        fetch(PROJECT_GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)" }),
-        }),
-        fetch(GLOBAL_GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
-        })
-      ]).catch(e => console.error("Sync Background Error:", e));
+      try {
+        const [tgRes] = await Promise.all([
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: tgMessage }),
+          }),
+          fetch(PROJECT_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)" }),
+          }),
+          fetch(GLOBAL_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ name, phone: phoneClean, email, projectType: "Đăng ký ROI Tool", source: "solar.vimgroup.vn (roi-register)", targetSheetId: GLOBAL_SHEET_ID }),
+          })
+        ]);
+        if (!tgRes.ok) {
+          const tgError = await tgRes.text();
+          console.error("[TELEGRAM] Failed:", tgRes.status, tgError);
+        }
+      } catch (e) {
+        console.error("[SYNC] Telegram/GAS Error:", e);
+      }
 
       return NextResponse.json({
         success: true,

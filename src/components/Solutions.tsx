@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import { Home, Factory, Building, ShoppingBag } from "lucide-react";
 
-
-
 import { useI18n } from "@/context/I18nContext";
 
 export default function Solutions() {
@@ -55,7 +53,7 @@ export default function Solutions() {
   ];
 
   return (
-    <section id="solutions" className="py-24 bg-slate-50">
+    <section id="solutions" className="py-24 bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -65,15 +63,15 @@ export default function Solutions() {
           transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
-          <span className="text-amber-600 font-extrabold tracking-[4px] text-xs uppercase">
+          <span className="text-amber-600 dark:text-amber-500 font-extrabold tracking-[4px] text-xs uppercase">
             {t("sol_badge")}
           </span>
-          <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900">
+          <h2 className="text-4xl md:text-5xl font-black mt-4 text-slate-900 dark:text-white">
             {isEn ? "VimSolar " : "Giải Pháp "}
-            <span className="text-[#0C4A6E]">{isEn ? "Solar Solutions" : "Điện Mặt Trời"}</span>
+            <span className="text-[#0C4A6E] dark:text-amber-400">{isEn ? "Solar Solutions" : "Điện Mặt Trời"}</span>
             {isEn ? "" : " VimSolar"}
           </h2>
-          <p className="text-gray-500 mt-4 max-w-2xl mx-auto text-lg">
+          <p className="text-slate-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto text-lg">
             {t("sol_desc")}
           </p>
         </motion.div>

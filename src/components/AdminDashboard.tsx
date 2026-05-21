@@ -97,6 +97,11 @@ export default function AdminDashboard() {
   const [leadEditForm, setLeadEditForm] = useState({ contractValue: "", status: "", notes: "" });
   const [actionMsg, setActionMsg] = useState<{ text: string; type: string } | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  
+  // Member Management State
+  const [memberSearch, setMemberSearch] = useState("");
+  const [memberRoleFilter, setMemberRoleFilter] = useState("all");
+  const [editingUserRole, setEditingUserRole] = useState<string | null>(null);
 
   // Automation State
   const [copied, setCopied] = useState<string | null>(null);
@@ -343,6 +348,18 @@ export default function AdminDashboard() {
       notes: leadEditForm.notes
     });
     setEditingLead(null);
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    if (!confirm(`Sếp chắc chắn muốn đổi quyền user này thành ${newRole}?`)) return;
+    await handleAffiliateAction("update-user-role", { targetUserId: userId, newRole });
+    setEditingUserRole(null);
+  };
+
+  const handleResetPassword = async (userId: string) => {
+    const newPass = prompt("Nhập mật khẩu mới cho user này:");
+    if (!newPass) return;
+    await handleAffiliateAction("reset-user-password", { targetUserId: userId, newPassword: newPass });
   };
 
   const formatCurrency = (val: number) => {
@@ -1098,8 +1115,37 @@ export default function AdminDashboard() {
                           <p className="font-medium">Chưa có thành viên affiliate/đối tác nào</p>
                         </div>
                       ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-sm">
+                        <div className="flex flex-col">
+                          {/* Search & Filter */}
+                          <div className="p-4 border-b border-white/5 flex gap-4 bg-white/[0.01]">
+                            <div className="relative flex-1">
+                              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                              <input 
+                                type="text"
+                                placeholder="Tìm theo tên, username, email, sđt..."
+                                value={memberSearch}
+                                onChange={e => setMemberSearch(e.target.value)}
+                                className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:border-emerald-500 transition-colors ${
+                                  isDark ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                                }`}
+                              />
+                            </div>
+                            <select
+                              value={memberRoleFilter}
+                              onChange={e => setMemberRoleFilter(e.target.value)}
+                              className={`px-4 py-2 text-sm rounded-lg border focus:outline-none focus:border-emerald-500 transition-colors ${
+                                isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'
+                              }`}
+                            >
+                              <option value="all">Tất cả vai trò</option>
+                              <option value="member">Đại sứ xanh (member)</option>
+                              <option value="partner">Đối tác (partner)</option>
+                              <option value="staff">Nhân viên (staff)</option>
+                              <option value="admin">Quản trị viên (admin)</option>
+                            </select>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
                             <thead className={`${isDark ? 'bg-slate-800' : 'bg-gray-50'} text-slate-400 uppercase text-[10px] tracking-wider`}>
                               <tr>
                                 <th className="px-5 py-3.5">Thành viên</th>
@@ -1107,24 +1153,53 @@ export default function AdminDashboard() {
                                 <th className="px-5 py-3.5">Mã giới thiệu</th>
                                 <th className="px-5 py-3.5">Số dư</th>
                                 <th className="px-5 py-3.5">Ngân hàng</th>
+                                <th className="px-5 py-3.5 text-right">Thao tác</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                              {affiliateUsers.map(u => (
+                              {affiliateUsers
+                                .filter(u => {
+                                  const searchMatch = (u.name + u.email + u.username + u.phone).toLowerCase().includes(memberSearch.toLowerCase());
+                                  const roleMatch = memberRoleFilter === 'all' || u.role === memberRoleFilter;
+                                  return searchMatch && roleMatch;
+                                })
+                                .map(u => (
                                 <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                                   <td className="px-5 py-4">
-                                    <div className="font-bold">{u.name}</div>
+                                    <div className="font-bold flex items-center gap-2">
+                                      {u.name}
+                                      {u.role === 'admin' && <Shield size={12} className="text-amber-500" />}
+                                    </div>
                                     <div className="text-xs text-slate-500">{u.email || u.username}</div>
                                     <div className="text-xs text-slate-600">{u.phone || ''}</div>
                                   </td>
                                   <td className="px-5 py-4">
-                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                                      u.role === 'partner' 
-                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
-                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    }`}>
-                                      {u.role === 'partner' ? '🔧 Đối tác' : '🌿 Đại sứ'}
-                                    </span>
+                                    {editingUserRole === u.id ? (
+                                      <select 
+                                        className={`px-2 py-1 text-xs rounded border outline-none ${isDark ? 'bg-slate-900 border-white/20 text-white' : 'bg-white border-gray-300 text-black'}`}
+                                        value={u.role}
+                                        onChange={(e) => handleUpdateRole(u.id, e.target.value)}
+                                        onBlur={() => setEditingUserRole(null)}
+                                        autoFocus
+                                      >
+                                        <option value="member">Đại sứ xanh</option>
+                                        <option value="partner">Đối tác</option>
+                                        <option value="staff">Nhân viên</option>
+                                        {user?.role === 'admin' && <option value="admin">Quản trị viên</option>}
+                                      </select>
+                                    ) : (
+                                      <button 
+                                        onClick={() => setEditingUserRole(u.id)}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border hover:opacity-80 transition-opacity ${
+                                        u.role === 'partner' 
+                                          ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                                          : u.role === 'admin' || u.role === 'staff'
+                                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                      }`}>
+                                        {u.role === 'partner' ? '🔧 Đối tác' : u.role === 'admin' ? '👑 Admin' : u.role === 'staff' ? '👨‍💻 Staff' : '🌿 Đại sứ'}
+                                      </button>
+                                    )}
                                   </td>
                                   <td className="px-5 py-4">
                                     {u.ref_code ? (
@@ -1145,6 +1220,15 @@ export default function AdminDashboard() {
                                         <div className="text-[10px] text-slate-500">{u.bank_holder} · {u.bank_account}</div>
                                       </div>
                                     ) : <span className="text-slate-600 text-xs">Chưa cập nhật</span>}
+                                  </td>
+                                  <td className="px-5 py-4 text-right">
+                                    <button
+                                      onClick={() => handleResetPassword(u.id)}
+                                      className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-amber-400 transition-colors"
+                                      title="Đổi mật khẩu"
+                                    >
+                                      <Key size={16} />
+                                    </button>
                                   </td>
                                 </tr>
                               ))}
