@@ -36,12 +36,12 @@ export default function Footer() {
             <h4 className="text-lg font-bold text-white">{isEn ? "Quick Links" : "Chuyên Mục"}</h4>
             <ul className="space-y-3 text-sm">
               {[
-                { name: t("nav_home"), href: "#home" },
-                { name: t("nav_solutions"), href: "#solutions" },
-                { name: t("nav_benefits"), href: "#benefits" },
-                { name: t("nav_projects"), href: "#projects" },
-                { name: t("nav_process"), href: "#process" },
-                { name: t("nav_quote"), href: "#get-quote" },
+                { name: t("nav_home"), href: "/#home" },
+                { name: t("nav_solutions"), href: "/#solutions" },
+                { name: t("nav_benefits"), href: "/#benefits" },
+                { name: t("nav_projects"), href: "/#projects" },
+                { name: t("nav_process"), href: "/#process" },
+                { name: t("nav_quote"), href: "/#get-quote" },
               ].map((link) => (
                 <li key={link.name}>
                   <a
