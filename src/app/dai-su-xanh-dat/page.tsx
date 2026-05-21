@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { I18nProvider, useI18n } from "@/context/I18nContext";
 import Navbar from "@/components/Navbar";
@@ -14,6 +14,7 @@ function AmbassadorLandingContent() {
   const router = useRouter();
 
   const [isRegister, setIsRegister] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -25,6 +26,18 @@ function AmbassadorLandingContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("vimsolar-admin-session");
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        if (u.role === "member" || u.role === "admin" || u.role === "staff") {
+          setIsLoggedIn(true);
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -147,122 +160,149 @@ function AmbassadorLandingContent() {
               </div>
             </div>
 
-            {/* Right Column - Register / Login Form */}
+            {/* Right Column - Register / Login Form OR Logged In State */}
             <div className="lg:col-span-5">
-              <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
-                
-                {/* Tab selector */}
-                <div className="flex bg-slate-950 p-1.5 rounded-2xl mb-6">
-                  <button 
-                    onClick={() => { setIsRegister(true); setError(""); }}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${isRegister ? "bg-emerald-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
-                  >
-                    <UserPlus className="w-4 h-4" /> {isEn ? "Register" : "Đăng Ký"}
-                  </button>
-                  <button 
-                    onClick={() => { setIsRegister(false); setError(""); }}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${!isRegister ? "bg-emerald-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
-                  >
-                    <LogIn className="w-4 h-4" /> {isEn ? "Login" : "Đăng Nhập"}
-                  </button>
+              {isLoggedIn ? (
+                <div className="bg-[#0070f3] rounded-3xl p-8 sm:p-10 shadow-2xl relative text-center">
+                  <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight uppercase">
+                    BẮT ĐẦU GIA TĂNG THU NHẬP NGAY HÔM NAY
+                  </h2>
+                  <p className="text-white/90 text-sm sm:text-base font-medium mb-8">
+                    Không ràng buộc doanh số - Không mất phí tham gia
+                  </p>
+                  
+                  <div className="bg-white rounded-2xl p-8 shadow-lg">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-green-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Tài khoản đã tồn tại</h3>
+                    <p className="text-gray-500 text-sm mb-8">
+                      Bạn hiện đang là Đại sứ Xanh của VimSolar.
+                    </p>
+                    <button 
+                      onClick={() => router.push("/daisu")}
+                      className="w-full bg-[#ff7b00] hover:bg-[#e66a00] text-white font-bold py-3.5 rounded-full transition-colors text-sm uppercase"
+                    >
+                      TRUY CẬP HỆ THỐNG
+                    </button>
+                  </div>
                 </div>
-
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">
-                    ⚠️ {error}
+              ) : (
+                <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+                  
+                  {/* Tab selector */}
+                  <div className="flex bg-slate-950 p-1.5 rounded-2xl mb-6">
+                    <button 
+                      onClick={() => { setIsRegister(true); setError(""); }}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${isRegister ? "bg-emerald-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
+                    >
+                      <UserPlus className="w-4 h-4" /> {isEn ? "Register" : "Đăng Ký"}
+                    </button>
+                    <button 
+                      onClick={() => { setIsRegister(false); setError(""); }}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${!isRegister ? "bg-emerald-500 text-slate-950" : "text-gray-400 hover:text-white"}`}
+                    >
+                      <LogIn className="w-4 h-4" /> {isEn ? "Login" : "Đăng Nhập"}
+                    </button>
                   </div>
-                )}
 
-                {success && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-4 rounded-xl mb-4 font-semibold text-center">
-                    🎉 Đăng ký thành công! Đang chuyển sang Đăng Nhập...
-                  </div>
-                )}
-
-                <form onSubmit={handleAuth} className="space-y-4">
-                  {isRegister && (
-                    <>
-                      <div>
-                        <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Full Name *" : "Họ và Tên *"}</label>
-                        <input 
-                          type="text" 
-                          name="name" 
-                          value={formData.name} 
-                          onChange={handleChange}
-                          placeholder={isEn ? "Nguyen Van A" : "Ví dụ: Nguyễn Văn A"}
-                          className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Phone *" : "Số điện thoại *"}</label>
-                          <input 
-                            type="tel" 
-                            name="phone" 
-                            value={formData.phone} 
-                            onChange={handleChange}
-                            placeholder="09xx xxx xxx"
-                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Email *" : "Email *"}</label>
-                          <input 
-                            type="email" 
-                            name="email" 
-                            value={formData.email} 
-                            onChange={handleChange}
-                            placeholder="name@email.com"
-                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </>
+                  {error && (
+                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">
+                      ⚠️ {error}
+                    </div>
                   )}
 
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Username *" : "Tên đăng nhập *"}</label>
-                    <input 
-                      type="text" 
-                      name="username" 
-                      value={formData.username} 
-                      onChange={handleChange}
-                      placeholder="username123"
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                      required
-                    />
-                  </div>
+                  {success && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-4 rounded-xl mb-4 font-semibold text-center">
+                      🎉 Đăng ký thành công! Đang chuyển sang Đăng Nhập...
+                    </div>
+                  )}
 
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
-                    <input 
-                      type="password" 
-                      name="password" 
-                      value={formData.password} 
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
-                      required
-                    />
-                  </div>
+                  <form onSubmit={handleAuth} className="space-y-4">
+                    {isRegister && (
+                      <>
+                        <div>
+                          <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Full Name *" : "Họ và Tên *"}</label>
+                          <input 
+                            type="text" 
+                            name="name" 
+                            value={formData.name} 
+                            onChange={handleChange}
+                            placeholder={isEn ? "Nguyen Van A" : "Ví dụ: Nguyễn Văn A"}
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Phone *" : "Số điện thoại *"}</label>
+                            <input 
+                              type="tel" 
+                              name="phone" 
+                              value={formData.phone} 
+                              onChange={handleChange}
+                              placeholder="09xx xxx xxx"
+                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Email *" : "Email *"}</label>
+                            <input 
+                              type="email" 
+                              name="email" 
+                              value={formData.email} 
+                              onChange={handleChange}
+                              placeholder="name@email.com"
+                              className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 mt-4"
-                  >
-                    {loading ? (isEn ? "Processing..." : "Đang xử lý...") : (isRegister ? (isEn ? "Register Free Now" : "Đăng Ký Miễn Phí Ngay") : (isEn ? "Access Ambassador Portal" : "Vào Trang Quản Trị Đại Sứ"))}
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Username *" : "Tên đăng nhập *"}</label>
+                      <input 
+                        type="text" 
+                        name="username" 
+                        value={formData.username} 
+                        onChange={handleChange}
+                        placeholder="username123"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                        required
+                      />
+                    </div>
 
-                <p className="text-[10px] text-gray-500 text-center mt-4">
-                  🛡️ {isEn ? "Your account is secure. 10% PIT is automatically withheld." : "Bảo mật thông tin 100%. Tự động giảm trừ thuế TNCN 10% theo quy định."}
-                </p>
-              </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wider">{isEn ? "Password *" : "Mật khẩu *"}</label>
+                      <input 
+                        type="password" 
+                        name="password" 
+                        value={formData.password} 
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 mt-4"
+                    >
+                      {loading ? (isEn ? "Processing..." : "Đang xử lý...") : (isRegister ? (isEn ? "Register Free Now" : "Đăng Ký Miễn Phí Ngay") : (isEn ? "Access Ambassador Portal" : "Vào Trang Quản Trị Đại Sứ"))}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </form>
+
+                  <p className="text-[10px] text-gray-500 text-center mt-4">
+                    🛡️ {isEn ? "Your account is secure. 10% PIT is automatically withheld." : "Bảo mật thông tin 100%. Tự động giảm trừ thuế TNCN 10% theo quy định."}
+                  </p>
+                </div>
+              )}
             </div>
 
           </div>
