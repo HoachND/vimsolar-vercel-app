@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Benefits from "@/components/Benefits";
 import Solutions from "@/components/Solutions";
+import Partners from "@/components/Partners";
+import EscoSolution from "@/components/EscoSolution";
 import About from "@/components/About";
 import Gallery from "@/components/Gallery";
 import SavingsCalculator from "@/components/SavingsCalculator";
@@ -19,7 +21,9 @@ export default function Home() {
         <Navbar />
         <Hero />
         <Solutions />
+        <Partners />
         <Benefits />
+        <EscoSolution />
         <About />
         <Gallery />
         <SavingsCalculator />
