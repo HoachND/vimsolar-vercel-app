@@ -22,11 +22,11 @@ export default function Navbar() {
   const toggleLanguage = () => setLanguage(language === "vi" ? "en" : "vi");
 
   const navLinks = [
-    { name: t("nav_home"), href: "#home" },
-    { name: t("nav_solutions"), href: "#solutions" },
-    { name: t("nav_benefits"), href: "#benefits" },
-    { name: t("nav_projects"), href: "#projects" },
-    { name: t("nav_process"), href: "#process" },
+    { name: t("nav_home"), href: "/#home" },
+    { name: t("nav_solutions"), href: "/#solutions" },
+    { name: t("nav_benefits"), href: "/#benefits" },
+    { name: t("nav_projects"), href: "/#projects" },
+    { name: t("nav_process"), href: "/#process" },
     { name: language === "vi" ? "Tính ROI" : "ROI Calc", href: "/tu-van" },
     { name: "Blog", href: "/blog" },
     { name: language === "vi" ? "Liên Hệ" : "Contact", href: "/#get-quote" },
