@@ -65,7 +65,15 @@ export default function BlogDetailContent({ post, relatedPosts }: { post: BlogPo
           <div className="mt-16 pt-8 border-t border-gray-100">
             <h4 className="text-sm font-bold text-slate-800 mb-3">{isEn ? "Tags:" : "Từ khóa:"}</h4>
             <div className="flex flex-wrap gap-2">
-              {(typeof post.tags === "string" ? post.tags.split(",").filter(Boolean) : Array.isArray(post.tags) ? post.tags : []).map(tag => (
+              {(() => {
+                const rawTags = post.tags as any;
+                const tagArr: string[] = typeof rawTags === "string"
+                  ? rawTags.split(",").filter(Boolean)
+                  : Array.isArray(rawTags)
+                    ? rawTags.map((t: any) => String(t))
+                    : [];
+                return tagArr;
+              })().map(tag => (
                 <a 
                   key={tag} 
                   href={`/blog?tag=${encodeURIComponent(tag.trim())}`} 

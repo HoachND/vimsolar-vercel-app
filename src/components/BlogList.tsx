@@ -32,10 +32,11 @@ export default function BlogList() {
   const filteredPosts = posts.filter(post => {
     if (selectedCategory && post.category !== selectedCategory) return false;
     if (selectedTag) {
-      const tagsList = typeof post.tags === "string" 
-        ? post.tags.split(",").map(t => t.trim().toLowerCase()) 
-        : Array.isArray(post.tags) 
-          ? post.tags.map(t => t.trim().toLowerCase()) 
+      const rawTags = post.tags as any;
+      const tagsList = typeof rawTags === "string" 
+        ? rawTags.split(",").map((t: string) => t.trim().toLowerCase()) 
+        : Array.isArray(rawTags) 
+          ? rawTags.map((t: any) => String(t).trim().toLowerCase()) 
           : [];
       if (!tagsList.includes(selectedTag.trim().toLowerCase())) return false;
     }
