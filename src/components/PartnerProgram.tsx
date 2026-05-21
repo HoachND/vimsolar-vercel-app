@@ -147,7 +147,6 @@ export default function PartnerProgram() {
 
                 {/* Visual Column / Form CTA */}
                 <div className="bg-slate-950/80 p-8 rounded-3xl border border-slate-800 shadow-2xl relative">
-                  <div className="absolute top-4 right-4 text-slate-800 text-6xl font-black">EPC</div>
                   <h4 className="text-xl sm:text-2xl font-black mb-4 flex items-center gap-2">
                     <Sparkles className="text-amber-500" />
                     {isEn ? "Request Partnership Policy" : "Nhận Chính Sách Chiết Khấu Bán Hàng"}
@@ -158,22 +157,87 @@ export default function PartnerProgram() {
                       : "Để lại thông tin để nhận bảng giá đại lý từ nhà phân phối và các cam kết hỗ trợ dự án từ VimSolar."}
                   </p>
 
-                  <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                  <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert(isEn ? 'Registration sent! Redirecting to Partner Portal.' : 'Đăng ký thành công! Hệ thống sẽ chuyển hướng đến trang quản lý.'); window.location.href = '/thong-ke'; }}>
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Company/Team Name" : "Tên Công ty/Tổ đội"}</label>
-                      <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Your organization" : "Nhập tên đơn vị"} />
+                      <input type="text" required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Your organization" : "Nhập tên đơn vị"} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Phone/Zalo" : "Số điện thoại / Zalo"}</label>
-                        <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder="0987..." />
+                        <input type="tel" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder="Ví dụ: 0987654321" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">{isEn ? "Operating Area" : "Khu vực hoạt động"}</label>
-                        <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "City/Province" : "Hà Nội, Hưng Yên..."} />
+                        <select required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none text-white">
+                          <option value="">{isEn ? "Select Province" : "Chọn Tỉnh/Thành"}</option>
+                          <option value="Hà Nội">Hà Nội</option>
+                          <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                          <option value="Đà Nẵng">Đà Nẵng</option>
+                          <option value="Hải Phòng">Hải Phòng</option>
+                          <option value="Cần Thơ">Cần Thơ</option>
+                          <option value="An Giang">An Giang</option>
+                          <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                          <option value="Bắc Giang">Bắc Giang</option>
+                          <option value="Bắc Kạn">Bắc Kạn</option>
+                          <option value="Bạc Liêu">Bạc Liêu</option>
+                          <option value="Bắc Ninh">Bắc Ninh</option>
+                          <option value="Bến Tre">Bến Tre</option>
+                          <option value="Bình Định">Bình Định</option>
+                          <option value="Bình Dương">Bình Dương</option>
+                          <option value="Bình Phước">Bình Phước</option>
+                          <option value="Bình Thuận">Bình Thuận</option>
+                          <option value="Cà Mau">Cà Mau</option>
+                          <option value="Cao Bằng">Cao Bằng</option>
+                          <option value="Đắk Lắk">Đắk Lắk</option>
+                          <option value="Đắk Nông">Đắk Nông</option>
+                          <option value="Điện Biên">Điện Biên</option>
+                          <option value="Đồng Nai">Đồng Nai</option>
+                          <option value="Đồng Tháp">Đồng Tháp</option>
+                          <option value="Gia Lai">Gia Lai</option>
+                          <option value="Hà Giang">Hà Giang</option>
+                          <option value="Hà Nam">Hà Nam</option>
+                          <option value="Hà Tĩnh">Hà Tĩnh</option>
+                          <option value="Hải Dương">Hải Dương</option>
+                          <option value="Hậu Giang">Hậu Giang</option>
+                          <option value="Hòa Bình">Hòa Bình</option>
+                          <option value="Hưng Yên">Hưng Yên</option>
+                          <option value="Khánh Hòa">Khánh Hòa</option>
+                          <option value="Kiên Giang">Kiên Giang</option>
+                          <option value="Kon Tum">Kon Tum</option>
+                          <option value="Lai Châu">Lai Châu</option>
+                          <option value="Lâm Đồng">Lâm Đồng</option>
+                          <option value="Lạng Sơn">Lạng Sơn</option>
+                          <option value="Lào Cai">Lào Cai</option>
+                          <option value="Long An">Long An</option>
+                          <option value="Nam Định">Nam Định</option>
+                          <option value="Nghệ An">Nghệ An</option>
+                          <option value="Ninh Bình">Ninh Bình</option>
+                          <option value="Ninh Thuận">Ninh Thuận</option>
+                          <option value="Phú Thọ">Phú Thọ</option>
+                          <option value="Phú Yên">Phú Yên</option>
+                          <option value="Quảng Bình">Quảng Bình</option>
+                          <option value="Quảng Nam">Quảng Nam</option>
+                          <option value="Quảng Ngãi">Quảng Ngãi</option>
+                          <option value="Quảng Ninh">Quảng Ninh</option>
+                          <option value="Quảng Trị">Quảng Trị</option>
+                          <option value="Sóc Trăng">Sóc Trăng</option>
+                          <option value="Sơn La">Sơn La</option>
+                          <option value="Tây Ninh">Tây Ninh</option>
+                          <option value="Thái Bình">Thái Bình</option>
+                          <option value="Thái Nguyên">Thái Nguyên</option>
+                          <option value="Thanh Hóa">Thanh Hóa</option>
+                          <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                          <option value="Tiền Giang">Tiền Giang</option>
+                          <option value="Trà Vinh">Trà Vinh</option>
+                          <option value="Tuyên Quang">Tuyên Quang</option>
+                          <option value="Vĩnh Long">Vĩnh Long</option>
+                          <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                          <option value="Yên Bái">Yên Bái</option>
+                        </select>
                       </div>
                     </div>
-                    <button className="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all flex items-center justify-center gap-2">
+                    <button type="submit" className="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all flex items-center justify-center gap-2">
                       <PhoneCall size={18} />
                       {isEn ? "Contact Partner Support" : "Đăng Ký Hợp Tác Đại Lý"}
                     </button>
@@ -252,12 +316,21 @@ export default function PartnerProgram() {
                       : "*Chú ý: Hoa hồng được đối soát và thanh toán nhanh chóng trong vòng 24 giờ sau khi khách hàng hoàn tất thanh toán đợt 1."}
                   </p>
 
-                  <a
-                    href="tel:0974516670"
-                    className="w-full block bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-4 rounded-xl text-center hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all"
-                  >
-                    {isEn ? "Call Ambassador Support" : "Liên Hệ Trực Tiếp Để Đăng Ký"}
-                  </a>
+                  <h4 className="text-lg sm:text-xl font-black mt-8 mb-4 text-center text-white flex items-center justify-center gap-2">
+                    <Sparkles className="text-amber-500" />
+                    {isEn ? "Ambassador Registration" : "Đăng Ký Trở Thành Đại Sứ"}
+                  </h4>
+                  <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert(isEn ? 'Registration sent! Redirecting to Ambassador Portal.' : 'Đăng ký thành công! Hệ thống sẽ chuyển hướng đến trang quản lý Đại Sứ.'); window.location.href = '/daisu'; }}>
+                    <div>
+                      <input type="text" required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Full Name" : "Họ và Tên"} />
+                    </div>
+                    <div>
+                      <input type="tel" maxLength={10} pattern="[0-9]{10}" onChange={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }} required className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none" placeholder={isEn ? "Phone Number (10 digits)" : "Số điện thoại (10 số)"} />
+                    </div>
+                    <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black py-4 rounded-xl text-center hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all">
+                      {isEn ? "Register Now" : "Đăng Ký Ngay"}
+                    </button>
+                  </form>
                 </div>
               </motion.div>
             )}

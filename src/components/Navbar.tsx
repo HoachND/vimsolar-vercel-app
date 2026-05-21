@@ -65,6 +65,9 @@ export default function Navbar() {
               <Globe size={16} />
               <span className="font-bold text-sm">{language.toUpperCase()}</span>
             </button>
+            <a href="/daisu" className="bg-[#0070f3] text-white font-bold px-6 py-2.5 rounded-full hover:bg-blue-600 transition-colors shadow-md text-sm">
+              {language === "vi" ? "Đăng nhập" : "Login"}
+            </a>
             <a href="tel:0974516670" className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-full hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all transform hover:scale-105">
               <Phone size={16} fill="currentColor" />
               <span>0974 516 670</span>
@@ -86,6 +89,12 @@ export default function Navbar() {
             >
               <Phone size={12} fill="currentColor" />
               <span>{t("nav_call")}</span>
+            </a>
+            <a
+              href="/daisu"
+              className="flex-shrink-0 flex items-center justify-center bg-[#0070f3] text-white font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm shadow-sm hover:bg-blue-600 transition-colors"
+            >
+              {language === "vi" ? "Đăng nhập" : "Login"}
             </a>
             <button
               onClick={() => setIsOpen(!isOpen)}
